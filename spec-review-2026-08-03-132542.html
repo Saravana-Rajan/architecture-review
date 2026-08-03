@@ -1,0 +1,1488 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Technical Specification Review</title>
+<!--
+  Interactive review report for the Techjays TL Agent (tl-spec-review skill).
+  Self-contained: no external CSS/JS/fonts — opens offline in any browser.
+  The agent injects the review JSON into the #review-data script tag below
+  (the placeholder token there is the only thing to replace). All rendering is
+  done client-side from that single data object, so the HTML and the companion
+  spec-review.md stay in sync (both derive from the same JSON).
+-->
+<style>
+  :root {
+    --bg: #f6f8fa; --surface: #ffffff; --surface-2: #f6f8fa; --border: #d0d7de;
+    --text: #1f2328; --muted: #636c76; --accent: #0969da;
+    --excellent: #1a7f37; --good: #2da44e; --adequate: #bf8700;
+    --weak: #e16f24; --stub: #cf222e; --absent: #a40e26; --na: #8c959f;
+    --blocker: #cf222e; --major: #e16f24; --minor: #bf8700; --nit: #6e7781;
+    --shadow: 0 1px 3px rgba(31,35,40,.08), 0 1px 2px rgba(31,35,40,.06);
+    --radius: 10px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #0d1117; --surface: #161b22; --surface-2: #21262d; --border: #30363d;
+      --text: #e6edf3; --muted: #8b949e; --accent: #4493f8;
+      --excellent: #3fb950; --good: #56d364; --adequate: #d29922;
+      --weak: #db6d28; --stub: #f85149; --absent: #ff7b72; --na: #6e7781;
+      --blocker: #f85149; --major: #db6d28; --minor: #d29922; --nit: #8b949e;
+      --shadow: none;
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--bg); color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55; font-size: 15px;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px 80px; }
+  a { color: var(--accent); text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  h1, h2, h3 { line-height: 1.25; }
+  code { background: var(--surface-2); padding: .1em .4em; border-radius: 5px; font-size: .88em;
+         font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace; }
+
+  /* Sticky header */
+  header.topbar {
+    position: sticky; top: 0; z-index: 20; background: var(--surface);
+    border-bottom: 1px solid var(--border); box-shadow: var(--shadow);
+  }
+  .topbar-inner { max-width: 1040px; margin: 0 auto; padding: 12px 20px;
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+  .topbar .scoreball { display: flex; align-items: baseline; gap: 4px; font-weight: 800; }
+  .topbar .scoreball .num { font-size: 26px; }
+  .topbar .scoreball .den { font-size: 14px; color: var(--muted); font-weight: 600; }
+  .topbar .title { font-size: 16px; font-weight: 700; margin: 0; flex: 1 1 240px; min-width: 0; }
+  .topbar .title small { display: block; color: var(--muted); font-weight: 500; font-size: 12px; }
+
+  .verdict-badge { padding: 6px 12px; border-radius: 999px; font-weight: 700; font-size: 13px;
+    color: #fff; white-space: nowrap; }
+
+  /* Meta chips */
+  .meta { display: flex; flex-wrap: wrap; gap: 8px; margin: 20px 0 8px; }
+  .chip { background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
+    padding: 5px 12px; font-size: 13px; color: var(--muted); }
+  .chip b { color: var(--text); font-weight: 600; }
+  .chip.yes b { color: var(--good); } .chip.no b { color: var(--muted); }
+
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 20px 22px; margin: 16px 0; }
+  .card h2 { margin: 0 0 12px; font-size: 18px; }
+  .section-label { text-transform: uppercase; letter-spacing: .04em; font-size: 12px;
+    color: var(--muted); font-weight: 700; margin: 28px 0 6px; }
+
+  .summary-text { margin: 0 0 14px; }
+  .gating { margin: 0; padding: 0; list-style: none; display: grid; gap: 8px; }
+  .gating li { display: flex; gap: 10px; align-items: flex-start; padding: 10px 12px;
+    background: var(--surface-2); border-radius: 8px; border-left: 3px solid var(--blocker); }
+  .gating .fix { color: var(--muted); }
+
+  /* Scorecard */
+  table.scorecard { width: 100%; border-collapse: collapse; }
+  table.scorecard td, table.scorecard th { padding: 9px 8px; text-align: left;
+    border-bottom: 1px solid var(--border); vertical-align: middle; }
+  table.scorecard th { font-size: 12px; text-transform: uppercase; letter-spacing: .03em;
+    color: var(--muted); }
+  table.scorecard tr.area-row { cursor: pointer; }
+  table.scorecard tr.area-row:hover { background: var(--surface-2); }
+  .grp-row td { background: var(--surface-2); font-weight: 700; font-size: 12px;
+    text-transform: uppercase; letter-spacing: .04em; color: var(--muted); padding: 6px 8px; }
+  .areacode { color: var(--muted); font-size: 12px; font-family: ui-monospace, monospace; }
+  .bar { position: relative; height: 8px; border-radius: 4px; background: var(--surface-2);
+    overflow: hidden; min-width: 90px; }
+  .bar > span { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 4px; }
+  .scorenum { font-weight: 800; font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .statuslbl { font-size: 12px; font-weight: 700; }
+  tr.total-row td { border-top: 2px solid var(--border); border-bottom: none;
+    font-weight: 800; font-size: 16px; padding-top: 14px; }
+
+  /* Area detail accordion */
+  .toolbar { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin: 8px 0 0; }
+  .btn { background: var(--surface); border: 1px solid var(--border); color: var(--text);
+    border-radius: 7px; padding: 6px 12px; font-size: 13px; cursor: pointer; font-weight: 600; }
+  .btn:hover { background: var(--surface-2); }
+  details.area { background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); margin: 10px 0; overflow: hidden; box-shadow: var(--shadow); }
+  details.area > summary { list-style: none; cursor: pointer; padding: 14px 18px;
+    display: flex; align-items: center; gap: 12px; }
+  details.area > summary::-webkit-details-marker { display: none; }
+  details.area > summary::after { content: "▸"; margin-left: auto; color: var(--muted);
+    transition: transform .15s; }
+  details.area[open] > summary::after { transform: rotate(90deg); }
+  details.area > summary .swatch { width: 6px; height: 30px; border-radius: 3px; flex: none; }
+  details.area > summary .aname { font-weight: 700; }
+  details.area > summary .ascore { margin-left: 6px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  .area-body { padding: 4px 18px 18px 36px; border-top: 1px solid var(--border); }
+  .area-body h4 { margin: 14px 0 4px; font-size: 12px; text-transform: uppercase;
+    letter-spacing: .03em; color: var(--muted); }
+  .fnd-chiprow { display: flex; flex-wrap: wrap; gap: 6px; }
+  .fnd-chip { font-family: ui-monospace, monospace; font-size: 12px; padding: 3px 8px;
+    border-radius: 6px; background: var(--surface-2); border: 1px solid var(--border);
+    cursor: pointer; font-weight: 600; }
+  .fnd-chip:hover { border-color: var(--accent); }
+
+  /* Findings register */
+  .sevfilter { display: flex; flex-wrap: wrap; gap: 8px; margin: 4px 0 14px; }
+  .sevbtn { border: 1px solid var(--border); background: var(--surface); cursor: pointer;
+    border-radius: 999px; padding: 5px 13px; font-size: 13px; font-weight: 700; color: var(--text); }
+  .sevbtn[aria-pressed="true"] { background: var(--text); color: var(--bg); border-color: var(--text); }
+  .sevbtn .dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px;
+    vertical-align: middle; }
+  table.findings { width: 100%; border-collapse: collapse; }
+  table.findings th, table.findings td { padding: 10px 8px; text-align: left;
+    border-bottom: 1px solid var(--border); vertical-align: top; }
+  table.findings th { font-size: 12px; text-transform: uppercase; color: var(--muted); }
+  table.findings tr[hidden] { display: none; }
+  .sevtag { display: inline-block; padding: 2px 9px; border-radius: 999px; color: #fff;
+    font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; }
+  .fid { font-family: ui-monospace, monospace; font-weight: 700; white-space: nowrap; }
+  .fid:target, tr.flash > td { animation: flash 1.6s ease; }
+  @keyframes flash { 0%,40% { background: rgba(255,196,0,.28); } 100% { background: transparent; } }
+  .areatag { font-family: ui-monospace, monospace; font-size: 12px; color: var(--muted); }
+
+  ol.actions, ul.qs { padding-left: 20px; margin: 6px 0; } ol.actions li, ul.qs li { margin: 6px 0; }
+  .strength-list { margin: 6px 0; padding-left: 20px; } .strength-list li { margin: 4px 0; }
+  footer { color: var(--muted); font-size: 12px; text-align: center; margin-top: 30px; }
+  .empty { color: var(--muted); font-style: italic; }
+
+  /* Resolution loop */
+  .round-banner { display: flex; flex-wrap: wrap; gap: 10px 14px; align-items: center; margin: 16px 0 0;
+    padding: 10px 14px; background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--radius); }
+  .round-banner .pill { background: var(--surface); border: 1px solid var(--border); border-radius: 999px;
+    padding: 3px 11px; font-size: 12px; font-weight: 800; }
+  .progress-line { font-size: 13px; color: var(--muted); }
+  .statustag { display: inline-block; padding: 2px 9px; border-radius: 999px; color: #fff; font-size: 11px;
+    font-weight: 800; text-transform: uppercase; letter-spacing: .03em; white-space: nowrap; }
+  table.findings tr.terminal td { opacity: .6; }
+  .reso-line { display: block; margin-top: 6px; font-size: 13px; color: var(--muted); }
+  .reso-line b { color: var(--text); font-weight: 600; }
+  .respond-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius);
+    box-shadow: var(--shadow); padding: 14px 16px; margin: 10px 0; }
+  .respond-card .rc-head { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+  .respond-card .rc-finding { color: var(--muted); font-size: 13px; margin: 2px 0 10px; }
+  .respond-card .followups { background: var(--surface-2); border-left: 3px solid var(--minor); border-radius: 0 6px 6px 0;
+    padding: 8px 12px; margin: 0 0 10px; font-size: 13px; }
+  .respond-card .followups ul { margin: 4px 0 0; padding-left: 18px; }
+  .respond-card label.fld { display: block; font-size: 12px; text-transform: uppercase; letter-spacing: .03em;
+    color: var(--muted); font-weight: 700; margin: 8px 0 4px; }
+  .respond-card textarea { width: 100%; min-height: 64px; resize: vertical; padding: 8px 10px; font: inherit;
+    font-size: 14px; color: var(--text); background: var(--surface-2); border: 1px solid var(--border); border-radius: 7px; }
+  .respond-card textarea:focus, .respond-card select:focus { outline: none; border-color: var(--accent);
+    box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 30%, transparent); }
+  .respond-card select { font: inherit; font-size: 13px; padding: 5px 8px; color: var(--text);
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 7px; }
+  .respond-actions { display: flex; align-items: center; gap: 12px; margin: 14px 0 0; flex-wrap: wrap; }
+  .btn.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .btn.primary:hover { filter: brightness(1.08); background: var(--accent); }
+  #export-note { font-size: 12px; color: var(--muted); }
+
+  @media print {
+    .respond-card, .respond-actions { display: none; }
+    header.topbar { position: static; box-shadow: none; }
+    details.area { break-inside: avoid; } details.area[open] > summary::after { content: ""; }
+    .toolbar, .sevfilter { display: none; } .card { break-inside: avoid; box-shadow: none; }
+  }
+  @media (max-width: 640px) {
+    table.scorecard .col-bar { display: none; }
+    .area-body { padding-left: 18px; }
+  }
+</style>
+</head>
+<body>
+<script id="review-data" type="application/json">{
+  "project": "ClimatePros Stream 1 — Auto Dispatch · Job Summarisation Copilot · Parts Finder",
+  "documentReviewed": "C:/Users/sarav/Downloads/ClimatePros-Stream1-Unified-Architecture-v1_3-§10-revised.docx",
+  "documentVersion": "1.3 — §10-revised (the file still self-labels Version 1.3 internally; see FND-149)",
+  "reviewDate": "2026-08-03 13:25",
+  "reviewId": "2026-08-03-132542",
+  "round": 2,
+  "priorReview": "2026-07-31-174947",
+  "system": {
+    "isAI": true,
+    "aiNote": "Yes — Use Cases B and C are LLM-assisted. This revision names the serving stack for the first time in §10: generation on Qwen3-VL-30B-A3B-Instruct (model_type qwen3_vl_moe, 30B total / 3B active MoE, 128K context) served by vLLM as primary-vl behind a LiteLLM gateway on 2× NVIDIA DGX Spark on ClimatePros on-prem hardware, with BAAI/bge-m3 (1024-dim) embeddings; retrieval-augmented parts prediction over a vector index (cosine, TOP_K 10, SIM_THRESHOLD 0.55, cubed-similarity aggregation); Google Gemini wired as an optional external fallback, off by default. Use Case A is deterministic ranking with no LLM, so the Applied-AI areas are scored against B and C only.",
+    "multiSystem": true,
+    "multiSystemNote": "Yes — three clouds/zones plus external integrations. AWS (Flutter mobile + web console, .NET Legacy/Microservices APIs on EC2, SQL Server, ECS Fargate dispatch workers, ElastiCache for Redis Streams, SNS/APNs/FCM, CloudWatch); Azure (FastAPI AI server on Container Apps, Cosmos DB for MongoDB vCore, vector store, Azure Monitor); on-prem ClimatePros hardware (LiteLLM gateway + vLLM + bge-m3). External: Azuga fleet telematics, United Refrigeration via the CP API Gateway, Google geocoding, Google Gemini (disabled by default).",
+    "workspaceNote": "No Delivery OS workspace was found at the invocation directory (C:/Users/sarav/review is empty), so this review is written beside the reviewed document in C:/Users/sarav/Downloads/tl-output/, alongside the round-1 artefacts. Finding IDs continue the round-1 sequence (new items start at FND-140) rather than restarting; the reviewed document’s own changelog cites a separate FND-004 … FND-054 register from two earlier internal review rounds, which is deliberately not reused here."
+  },
+  "overallScore": 7.2,
+  "verdict": "Build with caveats",
+  "verdictReason": "The round-1 Blocker (FND-101) is closed by the new §10 on-prem inference line, which lifts the Blocker cap that held round 1 at \"Significant gaps\". §10 moves 5 → 7 and the overall from 7.1 to 7.2. No unresolved Blocker remains. Twenty-one carried Majors plus three new ones (FND-141 §4/§10 serving-fact contradiction, FND-140 foreclosed load test with no downside band, FND-142 unpriced network seams) keep this short of \"Ready to build\" — track them, and treat FND-141 as a same-day edit.",
+  "executiveSummary": "This round reviews the §10-revised revision of the Stream 1 Unified Architecture, whose declared purpose was to close the round-1 cost Blocker — and it does. On-prem inference is no longer an exclusion but a named $0 line in every scenario column, identified as Qwen3-VL-30B-A3B-Instruct on vLLM behind LiteLLM with BAAI/bge-m3 embeddings, served on 2× NVIDIA DGX Spark, with the capacity position honestly graded as a ClimatePros attestation pending the Open Item #1 load test rather than dressed up as a measurement; the third-party integrations are itemised with named confirmers, unit economics are derived with the division shown, and an all-environments total now sits beside the single-environment headline. §10 moves 5 → 7, the overall moves 7.1 → 7.2, and — the change that actually matters — the Blocker cap lifts, so the verdict moves from \"Significant gaps — revise before build\" to \"Build with caveats\". The revision carries a cost of its own, though: the confirmed serving facts landed only in §10, while §4 — which §3 designates as authoritative for exactly those facts — still shows model tag, parameter counts, GPU model and VRAM as \"<to confirm>\", so the document now contradicts itself on its most load-bearing new fact and a reader cannot tell which §4 placeholders are stale and which are live (FND-141, a same-day edit). Two further Majors sit in the new material: §10 forecloses the outcome of the load test it depends on (\"does not change the $0 procurement position\") and offers no downside band or named attestor (FND-140), and neither of the two network seams the architecture requires on every AI request carries a cost line at all (FND-142). The twenty-one other round-1 Majors are untouched — this revision was scoped to §10 and stayed there.",
+  "gatingFindings": [
+    "FND-141",
+    "FND-140",
+    "FND-142",
+    "FND-104",
+    "FND-119",
+    "FND-109"
+  ],
+  "strengths": [
+    "The round-1 Blocker was closed the right way rather than the convenient way: §10 states \"a named line at zero, not an exclusion\", identifies the exact serving stack, and grades its own evidence — \"ClimatePros has confirmed\", \"expected to cover\", \"established by the pre-go-live load test (Open Item #1)\". An attestation is labelled as an attestation with the measurement left open, which is the correct posture and is credited as such.",
+    "The CP API Gateway cost entry is the best-argued item in the chapter precisely because it refuses to state a number: it identifies the endpoint concretely (an Azure APIM front for a ClimatePros Function App), names the two figures needed before $0 can be claimed (APIM tier, Function App hosting plan), explains why a consumption tier would change the answer, flags that the current integration points at Development/Sandbox, and names Paul Prieur as the confirmer.",
+    "Unit economics are derived rather than asserted, with the division shown, and the one ratio nobody has established — close-outs per dispatch — is written out as an explicit assumption instead of being quietly equated. Ending on \"roughly 5–8 minutes of technician time returned per job for ~1¢ of cloud spend\" is the sentence a sponsor actually needs.",
+    "Privacy-first by architecture, not by policy — models self-hosted on client hardware, plus a deterministic non-AI scrub layer with a field allow-list that fails closed on new fields, indexed placeholder tokens with an in-memory-only map, a CI leakage eval that gates releases, a per-call scrubOutcome audit field, and an honestly stated residual risk.",
+    "Release engineering treats the model as a first-class third runtime: tags pinned declaratively at the LiteLLM gateway, a one-step re-pin revert, the served tag recorded per call with a divergence alert, and a combined embedding-change procedure (eval gate, parallel index, backtest, flagged swap, retained rollback index).",
+    "Eval design is unusually mature — an arithmetic release gate with per-metric target/minimum, a 2-point per-section regression tolerance, an eval-set size floor that fails closed, a groundedness/fabrication metric, LLM-as-judge admitted only after validation against human labels, and an engagement-independent quality signal that anticipates a falling edit rate meaning apathy rather than quality.",
+    "Distributed-correctness thinking on A is real: lock-renewal heartbeat plus monotonically increasing fence tokens enforced at the single .NET write path, and a late-accept contract returning 409 offer_expired / already_assigned with a locally-expiring offer card — so two technicians can never each believe they hold the same job.",
+    "One architectural invariant carried consistently throughout — SQL Server is reached only by the .NET APIs; neither the dispatch workers nor the AI server holds a SQL connection. One write path, one auth boundary, one place to audit.",
+    "The Open Items register remains a genuine engineering artefact and grew correctly with the revision — now 16 items, each with a location, an owner-to-be and a stated reason it matters, with #1 narrowed as facts landed and #15/#16 added for the two new unconfirmed cost dependencies. Surfaced uncertainty of this quality beats false precision."
+  ],
+  "areas": [
+    {
+      "num": 1,
+      "code": "OVR",
+      "name": "Overview & Problem Framing",
+      "group": "Architecture & Design",
+      "score": 8,
+      "band": "Good",
+      "assessment": "§1 frames each of the three use cases against a concrete operational bottleneck with real numbers (900–1,000 technicians, 46 branches, 10,000+ sites, ~700 dispatches/day, 2–3 minutes per candidate phone call, 10–15 minutes per close-out), and states plainly where AI sits and where it deliberately does not (A is deterministic and explainable; B and C are always technician-overridable). The document is explicit about its own boundary — it is the 'how' companion to a Scope Document that owns the 'what' — which is a legitimate division and means the absence of full requirements here should not be penalised. Non-goals in §12 are unusually good: per use case, specific, and written to prevent the exact scope creep each feature invites (A is not route optimisation; C does no ordering, pricing or purchasing). Assumptions are surfaced rather than buried, both inline and in the Open Items appendix. What holds it below 9 is measurability: B carries a target (10–15 minutes down toward 5–8), C's success measure exists only as a pointer to the scope document, and A — the use case that reallocates work across a thousand people — has no measurable success criterion anywhere in this document, which then leaves the Phase-3 'pilot clean on its own metrics' gate undefined for it. — Round 2: unchanged in the §10-revised document; score carried forward.",
+      "findingIds": [
+        "FND-124"
+      ],
+      "suggestions": "Restate A's and C's success measures inline (one line each) rather than by reference, so the architecture document can be read standalone by an engineer who does not have the scope document open. Define what 'pilot clean' means numerically for each use case at the Phase-2 to Phase-3 boundary — for A this pairs naturally with the operational metrics recommended in FND-116.",
+      "strengths": "Per-use-case non-goals are specific and defensive. The 'Where AI sits' paragraph and the 'How to read this document' block orient a reader in under a minute — including the cloud placement rule and the two network hops — which is rare in a 30-page architecture document."
+    },
+    {
+      "num": 2,
+      "code": "ARC",
+      "name": "Architecture & System Design",
+      "group": "Architecture & Design",
+      "score": 7,
+      "band": "Good",
+      "assessment": "Three diagrams (unified system, A detail, B/C detail) with captions that assert the same invariants the prose does, a clean six-zone decomposition, and one architectural rule carried consistently everywhere — SQL Server is reached only through the .NET APIs, so neither the workers nor the AI server holds a SQL connection. The two network seams are named and treated as first-class components with auth, failure behaviour, monitoring and operational ownership each specified, which is better than most specs manage for integration points. Failure modes are covered per use case in §11 and reasoned about rather than listed. Where it loses ground is on decisions still open at points of high consequence. The Azure/AWS/on-prem split is asserted as a placement rule with no rationale, though it buys two network hops on every AI request, cross-cloud egress, two observability backends and a second datastore for a stateless service that could sit beside the .NET APIs. Seam 2 — on the latency path of every B and C call — has no chosen mechanism, no measured bandwidth and no measured round-trip, while the P95 budget claims to include it. Seam 1's pilot posture is undecided and the interim public-endpoint option's migration deadline and owner are blank. And A's worker pool runs one Fargate task per board with no concurrent redundancy, where crash recovery is the sum of two unquantified values on a time-critical path. — Round 2: score carried forward, but the balance shifted. FND-105 is materially better informed — the model, its parameter split, its context window, the serving runtime and the GPU hardware are all now stated — while the document’s internal consistency got worse, because those facts landed only in §10 and §4 (which §3 designates as authoritative for them) still calls every one of them unknown (FND-141). The knowledge gained and the coherence lost roughly cancel; a single propagation edit would convert this into a clear improvement.",
+      "findingIds": [
+        "FND-102",
+        "FND-105",
+        "FND-106",
+        "FND-107",
+        "FND-115",
+        "FND-141"
+      ],
+      "suggestions": "Record the cloud-split as an explicit decision with its rationale and the alternative considered (AI tier on AWS beside the platform), since it is the most expensive structural choice in the document and currently the least justified. Complete the Seam 2 row before build — mechanism, measured bandwidth and round-trip — because the §9 P95 target, the §6B timeout ceiling and the §8 admission-control sizing are all downstream of it. Fill in the Seam 1 migration date and owner now, so that if the interim endpoint ships it has an expiry rather than becoming the permanent posture by default. Quantify the ECS task-replacement time and the XAUTOCLAIM idle threshold and state the resulting worst-case delay for an Emergency dispatch, then decide Open Item #12 against that number rather than against cost alone. Before anything else, propagate §10’s confirmed serving facts back into §4 and narrow Open Item #1 to what is genuinely still unmeasured, so §4 stops telling engineers the hardware is unknown when the Appendix says it is confirmed.",
+      "strengths": "Naming both seams as components with their own connectivity, auth, failure and ownership rows is exactly where most specs hand-wave, and this one does not. The DR reasoning is proportional to rebuildability — only the AI MongoDB holds original records, so only it gets PITR and an RPO/RTO — which is disciplined thinking rather than blanket backup policy."
+    },
+    {
+      "num": 3,
+      "code": "FLW",
+      "name": "Feature Flows & System Sequencing",
+      "group": "Architecture & Design",
+      "score": 7,
+      "band": "Good",
+      "assessment": "Each use case has a narrative flow plus a figure (the ranked cascade with its 30-second offer window and human escalation; the copilot's summarise/review and persist/learn loops; the four-tier source ordering), and — more importantly — §11 gives each a real unhappy-path table rather than a happy-path-only walkthrough. The A failure table is genuinely good: worker dead, worker slow, worker crashed-but-actually-paused and no-technician-accepts are four distinct cases with four distinct mechanisms, and the slow-versus-crashed distinction is made observable through the heartbeat rather than asserted. Sync versus async boundaries are unambiguous (Redis Streams with a consumer group in, BLPOP per-technician reply channels out, SNS push, one synchronous AWS-to-Azure POST). The late-accept contract in §8A closes a race most specs never notice. Two things keep it from 8. First, B's retry semantics are unsafe in a way the document does not see: /summarise is declared 'read-only and safe to retry' while its hard timeout equals its P95 target, so at steady state a material share of calls time out client-side and each retry consumes a slot on the fixed-capacity gateway that is already the system's bottleneck. Second, several smaller flow edges are unspecified — what happens to in-flight cascades when a division is toggled off, what the dispatcher actually sees on escalation, and which of two mechanisms carries dispatch completions into C's learning loop. — Round 2: unchanged in the §10-revised document; score carried forward.",
+      "findingIds": [
+        "FND-108",
+        "FND-127",
+        "FND-128"
+      ],
+      "suggestions": "Separate the P95 target from the hard timeout (set P95 at ~8 s against a 12 s ceiling, or raise the ceiling) and write the client retry policy into §11B explicitly as 'do not retry on timeout — fall back to the manual recap', so the documented fallback is the one clients actually take. Add a request-scoped idempotency key to /summarise so a deliberate retry returns the cached draft rather than re-running inference. Choose the outbox for C's completion push, as §8C already identifies it as the more robust option and the synchronous alternative loses completions permanently during an AI-tier outage. Add two short rows to §5A: in-flight cascade behaviour on toggle-off, and the escalation surface with its expected response time.",
+      "strengths": "The failure tables are causal, not decorative — each row explains why the behaviour is safe, and the exactly-once claim is stated as conditional on the fence-token guard rather than as an absolute."
+    },
+    {
+      "num": 4,
+      "code": "DAT",
+      "name": "Data Schema & Modeling",
+      "group": "Engineering Contracts",
+      "score": 6,
+      "band": "Adequate",
+      "assessment": "§7 covers all three storage layers with clear ownership: Redis structures with key patterns, TTL and purpose; four MongoDB collections with an indicative field shape, index list and a schemaVersion for forward-only migration; C's read-only SQL entities and its derived vector index. The two records added in this revision are well-designed — the append-once assignmentDecision document gives A a real audit trail (full candidate list with each candidate's ETA, distance, visit count, score and rank; the weight applied; the fallback flag; every offer and outcome), and part_predictions captures C's retrieval intermediates so a bad prediction can be debugged rather than guessed at. Migration strategy is present and correctly differentiated per store. PII is classified per store in §12. The area lands at Adequate because of what a builder still cannot get from it. The 'fixed 12 sections' that the parser contract, the MISSING-placeholder guarantee, the per-section edit-rate metric and the per-section regression tolerance all depend on are never enumerated anywhere in the document. The Mongo collections carry field names with no types, no nullability and no value domains, deferred wholesale to a DBA sign-off. And the vector store is neither selected nor sized, with a candidate record count spanning two orders of magnitude and index parameters unpinned — which leaves query latency, re-index duration and the §10 cost line all undetermined. — Round 2: unchanged in the §10-revised document; score carried forward.",
+      "findingIds": [
+        "FND-109",
+        "FND-110",
+        "FND-111",
+        "FND-139"
+      ],
+      "suggestions": "Enumerate the 12 ticket sections in §7 or an appendix (name, purpose, and whether the section is deterministically derivable from structured data), referencing ticket_standard.md v1 as the versioned source — nothing else in the document is load-bearing for as many downstream contracts. Add types and required/nullable to the four collection shapes now; leave the DBA sign-off to be about indexes and RU sizing rather than about what the fields are. Resolve the vector store selection and seeding decision (Open Item #3) by running the C backtest against the filtered subset first — if it hits the top-3 target, the subset is the answer and the cost line stays small.",
+      "strengths": "part_predictions is a model of what a retrieval debug record should hold — the top-K neighbours with cosine distances, whether each cleared the threshold, the accumulated scores and confidences, and the pre-select decision — so a bad prediction is reconstructible rather than merely reportable. The DR classification by rebuildability (only the AI MongoDB holds original records) is applied consistently through §4."
+    },
+    {
+      "num": 5,
+      "code": "API",
+      "name": "API Contracts",
+      "group": "Engineering Contracts",
+      "score": 7,
+      "band": "Good",
+      "assessment": "Fourteen routes are enumerated with method, path, caller, purpose and target latency. The cross-cutting contract is stated once and properly: a standard error envelope with a stable machine code, a human-readable message and a correlation requestId; conventional 4xx/5xx semantics; auth split by plane (admin Entra role on the control plane, technician mobile auth on the data plane with the identity required to match the techId in the path or body); the AI routes internal-only behind the .NET proxy on an internal API key and a private VNet. Three specifics stand out. The late-accept contract distinguishes offer_expired from already_assigned and pairs the 409 with a locally-expiring offer card, so the client never waits on a key nobody reads. Admission control bounds concurrent gateway calls to measured capacity behind a bounded queue, answering fast with 429/503 and Retry-After that clients treat as the documented manual fallback. And the model-call contract is specified — hard timeouts, a max-token ceiling, and structured output enforced by JSON schema or constrained decode at the gateway with a regex-plus-MISSING fallback. The chapter defers request and response schemas to a named, versioned OpenAPI 3.1 companion from which the pydantic models and the .NET client are generated, which is a strong anti-drift mechanism and a legitimate reason for brevity — but it does mean this document alone cannot be built from, and the schemas could not be reviewed here. The remaining gaps are the retry semantics discussed under Feature Flows, inconsistent versioning across the three route families, and no stated compatibility or deprecation policy. — Round 2: unchanged in the §10-revised document; score carried forward.",
+      "findingIds": [
+        "FND-108",
+        "FND-125",
+        "FND-126",
+        "FND-138"
+      ],
+      "suggestions": "Apply one versioning scheme across all 14 routes — B's /api/v1/* prefix and A's and C's unversioned paths should not coexist — and state the compatibility policy (what constitutes a breaking change, how long a version is supported) in §8's preamble. Circulate Stream1-AI-API.openapi.yaml v1.0.0 alongside this document for review, and inline one representative request/response pair per use case in §8 so the chapter reads standalone. Add an idempotency key to /summarise per FND-108.",
+      "strengths": "Generating both the FastAPI pydantic models and the .NET typed client from a single versioned OpenAPI file is the right call and is stated as the reason the chapter is an index rather than the contract — that is a deliberate, defensible structure rather than an omission. The FND-054 late-accept contract is the kind of detail that only appears when someone has actually thought through two technicians tapping accept at the same moment."
+    },
+    {
+      "num": 6,
+      "code": "LIB",
+      "name": "Libraries, Frameworks & Tech Stack",
+      "group": "Engineering Contracts",
+      "score": 7,
+      "band": "Good",
+      "assessment": "§3 names concrete technology per layer per use case rather than describing a stack by language: Python 3.11+ on asyncio with aioboto3 for SNS, redis.asyncio using XREADGROUP and BLPOP, and pooled httpx for the .NET calls on the worker side; FastAPI, Uvicorn and pydantic on the AI side; LiteLLM as the gateway with vLLM serving qwen3-vl-moe and bge-m3 at 1024 dimensions; Flutter clients; Terraform for infrastructure. The choices are appropriate and, notably, restrained — model access is plain httpx to a gateway rather than a heavy orchestration framework, which for a two-pipeline system is the right level of abstraction and avoids a large lock-in surface. Licensing is addressed rather than ignored: the self-hosted model and tooling licences are stated as confirmed for commercial deployment. The model is pinned by tag at the gateway with a divergence alert, which is the correct place to pin it. Two things cost points. No version appears anywhere in the document — 'runtime libraries are version-pinned in a lockfile' is an assertion the reader cannot check, and the generation model's own tag and revision remain a placeholder. And the vector store is still an either/or between Azure AI Search and Pinecone, which is not merely a feature comparison: choosing Pinecone would place dispatch-reason text and its embeddings in a third-party SaaS, which sits awkwardly against §12's guarantee that dispatch text never leaves client infrastructure — a trade-off the document does not surface. — Round 2: §3 itself is unchanged and the score is carried forward, but FND-113 is partially addressed from outside this chapter: §10 now names the real model identities (Qwen3-VL-30B-A3B-Instruct on vLLM, BAAI/bge-m3) that §3 still shows as \"<… to confirm>\". Propagating them into §3 (FND-141) plus a revision pin would move this area on its own.",
+      "findingIds": [
+        "FND-112",
+        "FND-113"
+      ],
+      "suggestions": "List pinned major versions in §3 for the load-bearing dependencies (FastAPI, pydantic, vLLM, LiteLLM, redis-py, httpx, the AWS and Azure SDKs) — a reader should be able to tell whether the stack is current without opening the lockfile. Add the privacy posture as an explicit selection criterion in Open Item #3 so the vector store is chosen against §12 rather than only against features and price. Pin the model tag and revision as part of the Open Item #1 measurement.",
+      "strengths": "Choosing a gateway plus raw HTTP over an orchestration framework is a deliberate, well-matched decision for two linear pipelines, and it keeps the swap cost of the model provider low. Explicitly confirming commercial licence compatibility for the self-hosted model and serving stack is a step most specs skip entirely."
+    },
+    {
+      "num": 7,
+      "code": "OBS",
+      "name": "Observability & Traceability",
+      "group": "Applied AI / LLM Engineering",
+      "score": 7,
+      "band": "Good",
+      "assessment": "The AI-specific signals are all here and thought through. One trace per request across every hop with the cross-cloud and Azure-to-on-prem legs as explicit spans; a single requestId joining traces, logs and the AI collections so a slow trace, a log line and an eval finding resolve to one identifier; and an llm_calls record per model call carrying provider, model tag, tokens in and out, latency, outcome, the scrubbed prompt, the raw completion and a scrubOutcome audit field — which means the team can genuinely reconstruct what the model saw and produced when a technician reports a bad draft. P95 targets are set from figures already in the document and explicitly labelled provisional-pending-baseline, so the Phase-3 exit gate no longer depends on numbers that only exist after production. The eleven-row alert table maps every §11 failure mode to a signal, and includes two entries most teams only add after an incident: a business-level usage-cliff alert (how a silent total outage actually presents) and a served-model-tag divergence alert. Two real gaps remain. Every owner in that table reads 'to assign' and six of eleven thresholds are 'set at pilot baseline', so at go-live the alerting is a page with no one on the other end. And the 'one trace per request' claim spans two backends — CloudWatch for the AWS side, Azure Monitor for the AI stack — with no stated mechanism for stitching or querying a trace end-to-end across them. — Round 2: score carried forward. One new gap: §10 instructs that the §9 metered-geo-spend alert be extended to cover geocoding, and §9’s alert table still scopes that alert to travel-time lookups only (FND-147) — which matters because that alert is the compensating control for the one unverified assumption in the new Google $0 line.",
+      "findingIds": [
+        "FND-114",
+        "FND-115",
+        "FND-135",
+        "FND-147"
+      ],
+      "suggestions": "Name the on-call rotation and escalation path now and set conservative provisional thresholds — the document already demonstrates this pattern with the P95 targets, so apply it to the alert table too. State how a trace is followed across CloudWatch and Azure Monitor: either propagate a W3C traceparent through the .NET proxy into an OpenTelemetry collector that exports both sides to one destination, or accept the split explicitly and document the requestId join as the supported cross-backend query. Add a scrubOutcome fail-closed rate alert — a rising rate silently degrades B and C to manual, and the usage-cliff alert only catches the total case.",
+      "strengths": "Capturing promptScrubbed, completionRaw and scrubOutcome per call gives both debuggability and an auditable privacy posture from the same record — one design serving two needs. The business-level usage-cliff alert shows someone asked how a silent outage would actually be noticed."
+    },
+    {
+      "num": 8,
+      "code": "EVL",
+      "name": "Evaluation Strategy",
+      "group": "Applied AI / LLM Engineering",
+      "score": 8,
+      "band": "Good",
+      "assessment": "This is the area teams most often leave empty and it is one of the strongest chapters here. B's eval set is production-grounded — summary_edits captures every human correction to an AI-drafted section, giving labelled ground truth from normal usage — and it is seeded before go-live from a supervisor-corrected stratified sample of historical close-outs, so the gate is not empty at launch. The gate itself is arithmetic rather than a trend: per-metric target and minimum, no section's edit rate may worsen by more than two percentage points against the previous release, the aggregate may not worsen, and the gate fails closed below a minimum eval-set size. A groundedness eval traces each claim to a specific input field or retrieved item and scores fabrication rate per section, catching the plausible-but-invented sentence that neither edit rate nor adversarial cases would surface; LLM-as-judge is admitted only after validation against human labels with the judge model stated in config. Guardrail cases cover prompt injection against both B's close-out text and C's reason text. Most impressively, FND-026's engagement-independent signal anticipates the failure mode that a falling edit rate is equally consistent with technicians accepting drafts unread — and pairs it with supervisor rubric sampling, time-on-review-screen and per-technician segmentation. C gets a held-out backtest on top-3 hit-rate with the hold-out excluded from the live index, re-run on any embedding, threshold or index change. What holds it at 8: every gate number is still 'set at baseline', and A — a deterministic system that decides who works — is declared to have 'nothing to eval' when the new assignmentDecision record has just made it measurable. — Round 2: unchanged in the §10-revised document; score carried forward.",
+      "findingIds": [
+        "FND-116",
+        "FND-117",
+        "FND-136"
+      ],
+      "suggestions": "Give A an evaluation: backtest the ranking weights against historical dispatches with known outcomes before go-live, and define its operational metrics (rank-1 acceptance rate, offers-per-accept, escalation rate, travel-time-fallback rate, time-to-assign) with pilot baselines. 'Deterministic' means reproducible, not correct. Ratify the FND-025 gate numbers as a dated pre-go-live task with an owner (Open Item #14) — until then the only gate behaviour that actually fires is the size floor. For C, report recall at K on the neighbour set alongside top-3 hit-rate, so an embedding or threshold regression cannot be masked by the cubed-similarity aggregation.",
+      "strengths": "The arithmetic, fail-closed release gate and the engagement-independent quality signal are both well above the standard for a pre-build spec — the second in particular shows the author reasoned about how the metric could be gamed by the incentive the feature itself creates. The document is also candid about its ground truth's limits (38% OTHER problem codes, 88% SERVICE summary codes, ~40% of notes under 40 characters) rather than presenting the eval set as clean."
+    },
+    {
+      "num": 9,
+      "code": "FBK",
+      "name": "Feedback Loops & Continuous Improvement",
+      "group": "Applied AI / LLM Engineering",
+      "score": 8,
+      "band": "Good",
+      "assessment": "B's flywheel is complete and closed: technician corrections land in summary_edits, the eval set is rebuilt from them, and it gates every prompt, ticket-standard or model change before promotion. Prompts build from a versioned ticket_standard.md and every call logs its model tag, so any production ticket traces back to the exact standard version and model that produced it. Drift is a thresholded monitor with an alert, not just a chart, and it operates per section and per customer. C's self-learning index is the more interesting piece of design: completions are not indexed unconditionally, and the admission criteria specifically break the self-reinforcing loop — records below a reason-length and information threshold are excluded, parts subsequently returned, credited or corrected are excluded, the backtest hold-out is excluded, and predictions accepted with no technician edit are down-weighted so the system does not learn from its own unverified output. That last control is rarely seen in a spec at this stage and is exactly right. The negative signal (a technician deselecting a pre-selected part) is captured in part_predictions and pulled forward from Phase 2 where feasible. What remains: C's full correction loop is still Phase-2 work, its ingress trigger is undecided, prompt changes have a gate but no stated authoring and rollback process (unlike model changes, which have a very good one), and A's newly-captured assignmentDecision data is described as 'the tuning signal A previously lacked' with no one named to look at it and no cadence for acting on it. — Round 2: unchanged in the §10-revised document; score carried forward.",
+      "findingIds": [
+        "FND-129",
+        "FND-130",
+        "FND-127"
+      ],
+      "suggestions": "Keep ticket_standard.md in the application repository so a prompt change rides the same pull-request review, eval gate and revision rollback as code — the model release procedure is already exemplary and the prompt path should match it. Name an owner and a cadence for reviewing assignmentDecision records and re-tuning the per-division weights, otherwise A's audit trail accumulates without ever closing its loop. Decide the C completion trigger (Open Item #4) in favour of the outbox.",
+      "strengths": "The index admission criteria are a genuinely sophisticated control — most self-learning retrieval systems quietly train on their own accepted outputs and degrade, and this design names that failure mode and down-weights against it before writing a line of code."
+    },
+    {
+      "num": 10,
+      "code": "CMP",
+      "name": "AI Compliance, Safety & Governance",
+      "group": "Applied AI / LLM Engineering",
+      "score": 7,
+      "band": "Good",
+      "assessment": "The deployment model does most of the heavy lifting here and does it well: generation and embedding run on client-hosted models on ClimatePros hardware, so in the default production configuration prompts never leave client infrastructure and no third-party AI provider is involved at all. The Gemini fallback is off by default and gated behind a documented ClimatePros data-use decision covering region, retention and legal basis; the Dev exception is handled explicitly with a de-identified or synthetic dataset rather than a production snapshot. On top of that sits the scrub specification, which is the best-specified control in the document: a field allow-list as the primary mechanism so new fields fail closed, deterministic free-text matching against values already known from the job's structured records plus pattern classes, enumerated entity classes, indexed placeholder tokens with an in-memory-only map, fail-closed behaviour on any error or timeout, a CI leakage eval asserting zero leaks per class that gates releases, a per-call scrubOutcome audit field, and a candidly stated residual risk. Audit trails exist for all three use cases. Prompt-injection blast radius is genuinely small because neither pipeline has tools or autonomy. Two gaps keep this from scoring higher, and the second is the more serious. No regulation, jurisdiction or compliance regime is named anywhere, despite the document repeatedly invoking 'legal basis', 'DPA' and 'residency' as things to be determined. And the design has assembled a per-technician performance dataset — Azuga GPS and ETA, every offer with its accept/decline and timestamp, per-technician edit-rate segmentation, and time-on-review-screen with an explicit disengagement flag — which §12 never identifies as personal data with a purpose limitation, an access boundary or a retention period. — Round 2: unchanged in the §10-revised document; score carried forward.",
+      "findingIds": [
+        "FND-118",
+        "FND-119",
+        "FND-120",
+        "FND-133"
+      ],
+      "suggestions": "Name the applicable regime and the data-subject jurisdictions in §12, and state the lawful basis for each category in the PII inventory rather than leaving 'legal basis' as a placeholder inside Open Item #9. Add an employee-monitoring row to the inventory covering purpose limitation, who may view per-technician metrics, retention, and the employee notice or consultation position — and consider reporting the FND-026 engagement signals in aggregate or pseudonymised form, so a quality-monitoring mechanism does not become individual performance surveillance by default. Define the cascading-deletion path for B's original records and set a retention period per collection, including a TTL or archival policy for llm_calls.",
+      "strengths": "Self-hosting the models turns the hardest compliance question in most AI specs — does customer data reach a third-party provider under what terms — into a non-question for the default configuration, and the document is careful to state the guarantee precisely for Prod rather than sweepingly. The scrub's honest residual-risk statement (a free-text name absent from the structured record can evade value matching) is the mark of a control someone actually reasoned about rather than asserted."
+    },
+    {
+      "num": 11,
+      "code": "INF",
+      "name": "Infrastructure & Environment Setup",
+      "group": "Delivery & Operations",
+      "score": 7,
+      "band": "Good",
+      "assessment": "Three environments are defined with a table of what differs from production and a clear isolation rule — separate queues, databases, indexes and keys, with lower environments never pointing at live data and Dev explicitly on a de-identified or synthetic dataset. Terraform is committed as the IaC tool with one workflow and one remote state (with locking) spanning both clouds, per-environment variable files, and secrets referenced by name from Key Vault and IAM rather than stored in state — and the Phase-0 gate is restated as terraform apply succeeding with health checks passing, which makes the IaC claim enforceable rather than aspirational. Compute sizing gives instance sizes and scaling triggers per component, network topology places every datastore on private subnets or private endpoints behind a single public entry, and backup/DR is reasoned by rebuildability with an RPO and RTO on the one store that holds original records plus rehearsed restores. The capacity section is the AI-era thinking the area calls for: it identifies the fixed-capacity self-hosted gateway as the shared ceiling, sizes the admission-control semaphore to it, and gates Phase-3 expansion on a staged load test. The problem is that the tier everything depends on is entirely unspecified. The GPU model, count and VRAM are placeholders, the vLLM limits and measured throughput are placeholders, the Azure-to-on-prem link mechanism, bandwidth and latency are placeholders, operational ownership is 'to confirm', and no Azure region is named anywhere. And there is no continuity plan for that tier: if the GPU host or the link fails, B and C degrade to manual with no stated RTO, and the architectural failover — Gemini — is switched off by the privacy posture behind an undecided DPA. — Round 2: score carried forward. The on-prem tier is now identified (2× NVIDIA DGX Spark), which is a precondition for the FND-104 continuity plan rather than the plan itself; no RTO, spare capacity, failover posture or patching ownership was added, and with exactly two units the loss of one halves capacity — a case the document does not model. The Azure region (FND-103) is still unnamed, and the newly-documented CP API Gateway adds a further Azure component whose region is unstated.",
+      "findingIds": [
+        "FND-103",
+        "FND-104",
+        "FND-131",
+        "FND-132"
+      ],
+      "suggestions": "Pin the Azure region in §4 and re-price against it (Open Item #2) — the region determines the Seam-2 round-trip inside B's P95 budget, the cost lines, and data residency, so it blocks three separate open items at once. Give the on-prem model tier an RTO and a stated recovery path, and pre-agree with ClimatePros the conditions under which the Gemini fallback may be enabled during an outage, so the answer to a GPU failure is not an open-ended manual fallback for two of three use cases. State Staging's dataset provenance and handling explicitly alongside Dev's — Staging runs the full model stack for eval fidelity against a 'restricted SQL replica', which reads as production-derived data in the one environment where evals and load tests actually run. Add a one-line HA posture per managed store, or record single-instance as an accepted risk with its recovery path.",
+      "strengths": "Committing to Terraform across both clouds with one state and making terraform apply the Phase-0 gate turns infrastructure-as-code from a stated intention into a checked precondition. Sizing the admission-control semaphore to the measured gateway ceiling — rather than autoscaling into a fixed bottleneck — is precisely the capacity-planning failure that catches most self-hosted-model deployments."
+    },
+    {
+      "num": 12,
+      "code": "CICD",
+      "name": "CI/CD & Release Management",
+      "group": "Delivery & Operations",
+      "score": 8,
+      "band": "Good",
+      "assessment": "The strongest chapter in the document. Rollout is a four-phase pattern applied identically to all three use cases, with an explicit gate at each boundary rather than a plan that merely lists phases. The pipeline runs lint, unit and integration tests against mocked .NET, gateway and vendor stubs, and vulnerability-scans the container image before it can be promoted; promotion is gated Dev to Staging to Prod, and for B the eval set must pass before any prompt, ticket-standard or model change ships — stated unambiguously as blocking the release rather than flagging it. Rollback is covered for all three runtimes, including the one most specs forget: Container Apps and Fargate revert by revision, and the on-prem model tier reverts by re-pinning the previous tag at the gateway, with the served tag recorded per call and a divergence alert if the two disagree. Migrations are a gated pipeline stage with three strategies correctly matched to three stores — a versioned, idempotent, forward-only Mongo runner with an explicit N-to-N-minus-1 reader-compatibility rule; SQL sequenced expand, migrate, contract so the .NET deploy and the schema change land independently; and vector index rebuilds as a dual-index build-then-swap behind the rollout flag so C never serves a half-built index. Feature flags and app minimum-version gates decouple deploy from release and revert client exposure without a redeploy. The one structural weakness is that all of this rides 'ClimatePros' existing pipelines', which are never described while being asserted to already provide container scanning, eval gating, revision rollback on two runtimes, Terraform apply and a gated migration stage. — Round 2: score carried forward — the release chapter itself is untouched and the one new finding is a Minor that does not cross a band boundary. That finding is about the document’s own change control: §10, the banner and three Appendix items were materially revised, yet Document Control still reads \"Version 1.3\" and the changelog still stops at \"v1.2 → v1.3\", so this revision is not distinguishable from its predecessor by anything inside the file (FND-149).",
+      "findingIds": [
+        "FND-121",
+        "FND-137",
+        "FND-149"
+      ],
+      "suggestions": "Inventory the existing ClimatePros pipeline against the capability list this chapter assumes, and record any gaps as work items with owners — 'adds no new tooling' is a cost saving only if the tooling is already there, and right now that is a dependency rather than a finding. State the service versioning scheme and release cadence, and name the model-deployer role as part of Open Item #1 rather than leaving it 'to confirm'.",
+      "strengths": "Treating the model as a third deployable runtime with a declarative pinned tag, a one-step revert and a served-versus-pinned divergence alert gives '§3's any model change must pass the eval set first' an actual enforcement mechanism. The combined embedding-change procedure — eval gate, parallel index, backtest, flagged swap, retained rollback index — correctly recognises that swapping an embedding model invalidates every vector and is therefore three operations at once."
+    },
+    {
+      "num": 13,
+      "code": "CST",
+      "name": "Cost Projection",
+      "group": "Delivery & Operations",
+      "score": 7,
+      "band": "Good",
+      "assessment": "This is the chapter the revision targeted, and it moves from Adequate to Good — the largest single-area movement of either round. The round-1 Blocker is closed properly: on-prem inference is no longer an exclusion but a named $0 line in every scenario column, backed by a paragraph that identifies the serving tier (Qwen3-VL-30B-A3B-Instruct on vLLM as primary-vl, BAAI/bge-m3, LiteLLM gateway, 2× NVIDIA DGX Spark) and — importantly — grades its own evidence honestly. \"ClimatePros has confirmed … no additional GPU or server procurement is required\", \"current capacity is expected to cover\", \"Measured throughput … is established by the pre-go-live load test (Open Item #1)\": that is an attestation presented as an attestation with the measurement left open, and a \"Growth trigger\" paragraph naming the four conditions that would reopen it. The third-party subsection is better still — the CP API Gateway entry actively refuses to claim $0, naming the APIM tier and Function App plan as prerequisites, flagging that the integration currently points at Development/Sandbox, and naming Paul Prieur as the confirmer; Google is argued to $0 on a specific mechanism (intake already geocodes via SystemService.cs) with the account terms explicitly unreviewed. Unit economics now exist and are derived with the division shown, the all-environments total is carried, and a Cosmos growth formula appears. The arithmetic in the scenario table and the stated fixed floor both check out exactly. What holds it at 7 rather than higher is three things, none of them a Blocker. §10 forecloses its own load test — stating the measurement \"does not change the $0 procurement position\" — and offers no downside band or contingency, so a conclusion is again stated ahead of its evidence, more softly than in round 1 but in the same place (FND-140). Neither network seam is priced, although both are mandatory infrastructure on every AI request and §4 names them as components (FND-142). And the presentation lets acknowledged gaps escape the number: the Total row sums a table containing two \"<to confirm>\" rows without saying so (FND-144), the per-unit figures each carry the whole shared bill (FND-143), the Cosmos formula leaves blank a term the chapter itself derives (FND-146), and the C invocation rate now gates three figures while owned by no open item (FND-145).",
+      "findingIds": [
+        "FND-140",
+        "FND-142",
+        "FND-143",
+        "FND-144",
+        "FND-145",
+        "FND-146",
+        "FND-148",
+        "FND-123",
+        "FND-134",
+        "FND-101",
+        "FND-122"
+      ],
+      "suggestions": "Replace the \"does not change the $0 procurement position\" clause with an explicit contingency and an indicative procurement band, and attribute the hardware attestation by name and date the way #15 and #16 attribute theirs. Add the two connectivity rows (Seam 1 AWS↔Azure, Seam 2 Azure→on-prem) with a low/high band across the mechanisms §4 lists, conditional on Open Items #6 and #1. Annotate the Total row with what it excludes so the caveat travels with the number. Add one sentence to unit economics saying the three per-unit figures are alternative views of the same bill and must not be summed — or split the shared lines by driver. Substitute the derived llm_calls write rate into the Cosmos formula and state months-to-ceiling against M10. Give the C invocation rate its own Open Item with an owner. These are all short edits; together they would take this area to 8–9.",
+      "strengths": "The evidence discipline in the revised chapter is genuinely above par and should be preserved verbatim as the house style: an attestation is called an attestation, \"expected\" is not written as \"confirmed\", the confirming person is named where known, and the one ratio behind cost-per-close-out that nobody has established is written out as an assumption rather than quietly assumed. The CP API Gateway paragraph is the best-argued cost item in the document precisely because it declines to state a number — it names the two figures needed, why a consumption tier would change the answer, and who can confirm. Costing the rejected metered travel-time alternative at ~$4,000/mo (~20× the cloud bill) still turns a technology choice into a defensible business decision, and the unit-economics framing — ~1¢ of cloud spend against 5–8 minutes of technician time returned per job — is exactly the sentence a sponsor needs."
+    }
+  ],
+  "findings": [
+    {
+      "id": "FND-101",
+      "severity": "Blocker",
+      "area": "CST",
+      "finding": "The on-prem GPU/inference hardware that serves every B and C model call is excluded from the cost projection. §10 states it 'runs on existing ClimatePros hardware' and is 'intentionally excluded from these cloud totals', while §4 records that the GPU model, count, VRAM, vLLM limits and measured throughput are all unknown placeholders under Open Item #1. The document therefore asserts that existing hardware suffices while simultaneously stating that nobody has established what that hardware is or whether it can serve the workload. If it cannot, the shortfall is a capital purchase plus power and operations that dwarfs the entire ~$179-$255/month cloud estimate by orders of magnitude — and it appears nowhere in the projection, not even as a risk. This is the number a client will read and approve.",
+      "fix": "Add an explicit 'On-prem inference (GPU)' line to §10 carrying either $0 with the specific existing host named and its measured headroom, or a procurement range (a suitable single-GPU or multi-GPU host class plus power and support) as a low/expected/high band. Make the §10 scenario totals conditional on the Open Item #1 measurement exactly as the Azure lines are already conditional on Open Item #2, and state in the 'Pending re-pricing' banner that the totals exclude on-prem inference capital cost until that measurement lands.",
+      "status": "Resolved",
+      "authorResponse": null,
+      "adjudication": "RESOLVED as a Blocker. §10 now carries \"On-prem inference — 2× DGX Spark (existing)\" as a named $0 line in all three scenario columns — explicitly \"a named line at zero, not an exclusion\" — and a dedicated \"On-prem inference — $0 incremental\" paragraph identifies the serving tier (Qwen3-VL-30B-A3B-Instruct on vLLM as primary-vl, BAAI/bge-m3, LiteLLM gateway, 2× NVIDIA DGX Spark). The evidence grade is stated correctly rather than inflated: \"ClimatePros has confirmed this is existing infrastructure and that no additional GPU or server procurement is required\", \"current capacity is expected to cover the Stream 1 workload\", and \"Measured throughput on the DGX Spark pair is established by the pre-go-live load test (Open Item #1)\". That is an attestation labelled as an attestation with the measurement left open — exactly what the rubric asks for, and it is credited, not penalised. A \"Growth trigger\" paragraph additionally names the four conditions (higher call volume, extra use cases, larger concurrent population, sustained 128K context) that would reopen the line. The specific risk the Blocker was raised against — unbudgeted capital expenditure on hardware nobody had identified — is closed by a named attestation from the party that owns and would pay for that hardware. Two residuals are carried forward as new findings rather than holding this one open: the foreclosed load-test conclusion and absent downside band (FND-140), and the fact that the confirmed serving facts landed only in §10 while §4 still calls them unknown (FND-141). The round-1 Blocker cap on the verdict is lifted.",
+      "followUps": [],
+      "resolvedOn": "2026-08-03 13:25",
+      "decisionId": null
+    },
+    {
+      "id": "FND-102",
+      "severity": "Major",
+      "area": "ARC",
+      "finding": "The cloud placement rule — 'anything AI-specific runs on Azure; everything else runs on AWS; models stay on-prem' — is asserted with no rationale anywhere in the document. It is the most consequential structural decision in the architecture and buys two network hops on every B/C request instead of one, cross-cloud egress, two observability backends that must be stitched (FND-115), a second datastore, a second IaC provider surface, and a second security boundary to review — for a stateless FastAPI service that could sit on AWS beside the .NET APIs and reach the on-prem LiteLLM gateway directly. A reader cannot tell whether this reflects an existing Azure agreement, a vector-store preference, a client mandate, or inertia from the two merged v1.0 drafts.",
+      "fix": "Record the split as an explicit decision in §2 with its rationale and the alternative considered (AI tier co-located on AWS, single hop to on-prem). If the driver is an existing Azure commitment or Azure AI Search, say so — that closes the question permanently. If no driver survives scrutiny, collapsing the AI tier onto AWS removes a seam, an egress line, a monitoring backend and a whole IaC surface.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-103",
+      "severity": "Major",
+      "area": "INF",
+      "finding": "No Azure region is named anywhere in the document, and §10 notes the Cosmos quote is 'unverified for region/tier'. The region determines the Seam-2 round-trip to the on-prem model host that §9 claims is inside B's P95 budget, the Azure re-pricing under Open Item #2, and the residency of every AI-side store (summaries, summary_edits, llm_calls with scrubbed prompts and raw completions, part_predictions, and the vector index).",
+      "fix": "Pin the Azure region in §4 alongside the resource list, re-price the Azure lines against it, and state the measured or expected round-trip from that region to the ClimatePros model host as an input to the §9 P95 budget. One decision closes parts of three open items.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "STILL OPEN. No Azure region is named anywhere in the revised document. The \"Pending re-pricing\" banner still reads \"Cosmos DB is a real Azure quote, unverified for region/tier\", and Open Item #2 is unchanged. The new §10 material adds an Azure dependency rather than removing one: the CP API Gateway is identified as an Azure API Management endpoint (cp-api-gateway.azure-api.net) fronting a ClimatePros Function App, whose region is likewise unstated.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-104",
+      "severity": "Major",
+      "area": "INF",
+      "finding": "There is no continuity plan for the on-prem model tier itself. §11 covers a Container Apps instance dying and a gateway outage by degrading B and C to their manual paths, but no RTO is stated for restoring the model tier, no spare capacity or failover host is named, and no patching or capacity-expansion ownership is defined beyond 'ClimatePros infrastructure ... techjays for gateway configuration <to confirm>'. The natural failover — the Gemini fallback — is switched off by the privacy posture and gated behind an undecided DPA (Open Item #9). The documented business-continuity answer for two of three use cases is therefore an open-ended manual fallback dependent on client hardware repair.",
+      "fix": "State an RTO for the model tier and the recovery path behind it (spare host, second GPU node, or a documented rebuild procedure). Pre-agree with ClimatePros the specific conditions under which the Gemini fallback may be enabled during an outage and what data may traverse it in that mode, so the decision is made in advance rather than during an incident. Add a model-tier availability row to the §4 DR section alongside the four datastores.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "PARTIALLY ADDRESSED — a precondition is now met, the plan itself is not written. Identifying the tier as 2× NVIDIA DGX Spark on ClimatePros infrastructure makes a continuity plan possible for the first time, and the \"Growth trigger\" paragraph assigns any capacity expansion to a separate sizing and procurement exercise. Still absent: an RTO for restoring the model tier, any spare capacity or failover host (note that with exactly two units the loss of one halves capacity, which the document does not model), and patching or capacity-expansion ownership beyond \"ClimatePros infrastructure for link and hardware, techjays for gateway configuration <to confirm>\" in §4.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-105",
+      "severity": "Major",
+      "area": "ARC",
+      "finding": "Every serving fact for the shared capacity ceiling is a placeholder: model tag and revision, total and active parameter count, quantisation scheme, GPU model and count, VRAM, vLLM max-model-length and max-concurrent-sequences, measured tokens/sec and the resulting max sustained requests/minute — plus the Seam-2 mechanism, bandwidth and round-trip. Yet the §4 load test validates against that requests/minute figure, the §8 admission-control semaphore is sized to it, the §9 P95 targets are budgeted against the round-trip, and the §6B ~6-7s typical and ~10s timeout are derived from it. The document is admirably explicit that these are all Open Item #1, but the consequence is that the AI tier cannot be sized, load-tested, timed out or admission-controlled until the measurement exists.",
+      "fix": "Schedule the Open Item #1 measurement as a dated pre-build task with a named owner on both sides, run on the actual ClimatePros hardware at B's real prompt sizes. Until it lands, label every derived figure provisional-pending-Open-Item-1 in the same way §9 already labels the P95 targets, so no downstream number is read as settled.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "PARTIALLY ADDRESSED, with a new inconsistency introduced. Several of the serving facts this finding listed as placeholders are now stated — but in §10, not §4: exact model (\"Qwen3-VL-30B-A3B-Instruct\", model_type qwen3_vl_moe), total and active parameter count (30B / 3B MoE), context window (128K), serving runtime and served name (vLLM, primary-vl), embedding model (BAAI/bge-m3), and GPU model and count (2× NVIDIA DGX Spark). Genuinely still unknown: quantisation scheme, vLLM max-concurrent-sequences, measured tokens/sec and the derived max sustained requests/minute, and the Seam-2 mechanism, bandwidth and round-trip. §4 — which §3 designates as the place where \"the full serving facts and measured capacity are specified\" — was not updated and still carries every one of these as \"<… to confirm>\", so a reader of §4 cannot tell which placeholders are live (FND-141).",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-106",
+      "severity": "Major",
+      "area": "ARC",
+      "finding": "The Seam-1 pilot posture is undecided (Open Item #6): either site-to-site VPN / VNet peering, or an interim locked-down public HTTPS endpoint with IP allow-list and mTLS. §12's 'never internet-reachable' guarantee is therefore conditional, and while the interim option carries good compensating controls (WAF, per-source rate limits, certificate rotation, alerting on non-allow-listed sources), its migration deadline and owner are both blank placeholders. An interim posture with no expiry date and no owner is how interim postures become permanent.",
+      "fix": "Decide the pilot posture before build. If the interim endpoint is used, fill in the migration date and owner now rather than at pilot, and add the migration to the Phase-3 exit criteria so widening beyond the pilot branch cannot happen on the interim path.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-107",
+      "severity": "Major",
+      "area": "ARC",
+      "finding": "A's worker pool scales 0-to-1 task per enabled board, so each board has exactly one worker and no concurrent redundancy. Recovery from a worker crash is task-replacement time plus the XAUTOCLAIM idle threshold, and both are unquantified placeholders ('<IDLE THRESHOLD — to confirm; set above the 30-second offer window>', 'expected recovery ... <VALUE — to confirm>'). For an Emergency dispatch — the type whose weight is locked to pure ETA precisely because speed matters — this is an unbounded delay on a time-critical path, and the document offers the two-task option (Open Item #12) as a cost trade rather than as a reliability decision.",
+      "fix": "Measure or bound ECS task-replacement time, set the XAUTOCLAIM idle threshold explicitly, and state the resulting worst-case dispatch delay. Then decide Open Item #12 against that number and the Emergency dispatch expectation — the §10 Fargate line is ~$6/month at the typical scenario, so a second task per board is a negligible cost against an unbounded delay.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-108",
+      "severity": "Major",
+      "area": "API",
+      "finding": "§8B declares /summarise and /analyse 'read-only and safe to retry', but they are not free to retry. §6B sets a hard request timeout of ~10s over a ~6-7s typical, and §9 sets the P95 target at exactly 10s — so by construction a material share of calls sits at or beyond the client timeout at steady state. Each retry then consumes a slot on the fixed-capacity self-hosted gateway that §4 and §8 both identify as the system's bottleneck, and writes another llm_calls record. Side-effect freedom is being conflated with cost freedom: under load, timing-out clients retrying into a saturated semaphore is precisely the amplification the bounded queue cannot absorb.",
+      "fix": "Separate the target from the ceiling — set P95 at ~8s against a ~12s hard timeout, so the target is achievable rather than coincident with failure. Write the client retry policy explicitly into §11B: do not retry on timeout, fall back to the manual recap. And add a request-scoped idempotency key to /summarise and /analyse so a deliberate retry returns the cached draft rather than re-running inference.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-109",
+      "severity": "Major",
+      "area": "DAT",
+      "finding": "The 'fixed 12 sections' of the ticket are never enumerated anywhere in the document, yet they are load-bearing for at least five contracts: the structured-output schema at the gateway, the parser fallback guarantee that 'the app always receives exactly 12 sections', the MISSING-placeholder behaviour, the per-section edit-rate headline metric, and the per-section 2-point regression tolerance in the release gate. Nobody can write ticket_standard.md, the pydantic model, the eval harness or the mobile review screen from what is here.",
+      "fix": "Enumerate the 12 sections in §7 or an appendix as a short table: section name, purpose, and whether it is deterministically derivable from structured data (which determines whether the '§6B deterministic rules override' path applies to it). Reference ticket_standard.md v1 as the versioned source of the prompt-side wording.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-110",
+      "severity": "Major",
+      "area": "DAT",
+      "finding": "The four MongoDB collections are given as field names only — no types, no required/nullable, no value domains or enumerations (for example llm_calls.outcome and scrubOutcome, summaries.procedureChecks[], part_predictions.confidence). The shapes are labelled 'indicative' with final design deferred wholesale to a client DBA sign-off (Open Item #5). A DBA sign-off should settle indexes and RU sizing, not what the fields are.",
+      "fix": "Add types and nullability to the four shapes in §7B/§7C now, and enumerate the value domains for the status-like fields. This is a half-page of work that unblocks the pydantic models, the migration runner's N-to-N-minus-1 reader rule (which cannot be validated without knowing what defaults apply), and the dashboard queries.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-111",
+      "severity": "Major",
+      "area": "DAT",
+      "finding": "The vector store is neither selected nor sized. The product is undecided (Azure AI Search vs Pinecone), the seeding decision is open between a filtered subset and the full corpus — a range spanning ~3-4K records to 200,000+, two orders of magnitude — the index type and parameters (HNSW m / ef-construction / ef-search or the managed equivalent) are unpinned, and query latency and re-index duration are unmeasured. §4 marks the earlier 3-4K sizing superseded, but §10's cost table still carries the line derived from it. This single open item propagates into the C latency target, the §10 total, the re-index duration that gates the dual-index cutover, and the backtest's representativeness.",
+      "fix": "Resolve Open Item #3 before build, and drive it with evidence rather than preference: run the C backtest against the filtered subset first — if top-3 hit-rate meets its target, the subset is the answer and the store stays small and cheap. Then pin the index parameters, record the resulting record count and growth rate in §7C, and re-derive the §10 line.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-112",
+      "severity": "Major",
+      "area": "LIB",
+      "finding": "Open Item #3 offers Pinecone as a vector-store candidate alongside Azure AI Search, but the document does not acknowledge that the two have materially different privacy postures. C's index holds dispatch reason text and its embeddings; §12 guarantees that 'dispatch text and parts history never leave client infrastructure' and §6C states 'dispatch text never leaves client infrastructure'. Selecting Pinecone would place that content in a third-party SaaS outside both the Azure VNet and the client boundary, contradicting the guarantee that is the document's central privacy claim — and the selection criteria as written are silent on it.",
+      "fix": "Add the §12 privacy posture as an explicit, first selection criterion in Open Item #3, and state which candidates satisfy it. If Pinecone is chosen anyway, §12's guarantee must be rewritten in the same revision to say what actually holds, and the choice needs the same data-use/DPA treatment as Open Item #9 gives Gemini.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-113",
+      "severity": "Major",
+      "area": "LIB",
+      "finding": "No library, framework or runtime version appears anywhere in the document except 'Python 3.11+'. 'Runtime libraries are version-pinned in a lockfile' is an assertion the reader cannot verify, and the generation model — the dependency whose version most affects quality, capacity and cost — is itself '<QWEN3-VL-MOE EXACT TAG / REVISION — to confirm>'. vLLM and LiteLLM versions matter too: both move fast, and vLLM's serving flags and quantisation support change between releases in ways that affect the FND-105 capacity numbers.",
+      "fix": "List pinned major versions in §3 for the load-bearing dependencies — FastAPI, pydantic, vLLM, LiteLLM, redis-py, httpx, aioboto3, and the Azure/AWS SDKs — so a reader can judge currency and support status without opening the lockfile. Pin the model tag and revision as part of the Open Item #1 measurement, since the measured throughput is only valid for the version it was measured on.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "PARTIALLY ADDRESSED. The single most consequential version placeholder — the generation model — now has a real identity in §10: \"Qwen3-VL-30B-A3B-Instruct (model_type: qwen3_vl_moe; 30B total / 3B active MoE)\", served by \"vLLM as primary-vl\", with \"BAAI/bge-m3\" named as the embedding model. Still open: no revision/commit pin on either model, no library or framework versions anywhere except \"Python 3.11+\", and §3 — the Technology Stack chapter this finding is raised against — is unchanged and still reads \"<QWEN3-VL-MOE EXACT TAG / REVISION — to confirm>\".",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-114",
+      "severity": "Major",
+      "area": "OBS",
+      "finding": "In the §9 alert table, all eleven Owner cells read 'to assign — techjays on-call / ClimatePros ops', and six of eleven thresholds read '<THRESHOLD — set at pilot baseline>'. Several of the unowned alerts are P1: model error/timeout rate, gateway queue wait, Redis pending-entry age, AI-proxy 5xx rate, the usage cliff, and served-tag divergence. At go-live this is a well-designed table that nobody answers, which is operationally equivalent to having no alerting for the failures it covers.",
+      "fix": "Name the on-call rotation and the escalation path per severity now, and agree the AWS-side versus Azure-side split of responsibility between techjays and ClimatePros ops. Set conservative provisional thresholds to be tightened at baseline — §9 already does exactly this for the P95 targets, so apply the same pattern rather than leaving six alerts inert until after pilot.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-115",
+      "severity": "Major",
+      "area": "OBS",
+      "finding": "§9 claims 'one trace per request across every hop (.NET to Redis to worker to .NET, or .NET to Azure to LiteLLM to model)' while §2/§3 place AWS telemetry in CloudWatch and the AI stack's telemetry in Azure Monitor. No mechanism is stated for propagating trace context across the .NET proxy into the Azure side, nor for querying a single trace that spans two backends. In practice an engineer debugging a slow B request would have half the spans in one console and half in another, with only the requestId to join them manually — which is not what 'one trace per request' means and undercuts the strongest claim in the observability chapter.",
+      "fix": "State the correlation mechanism explicitly. Either propagate a W3C traceparent header through the .NET AI proxy and export both sides to a single destination via an OpenTelemetry collector (the cleanest option given OTel is already the instrumentation layer), or accept the split deliberately and document the requestId join as the supported cross-backend query, with the caveat recorded against the P95 attribution for the Seam-1 and Seam-2 spans.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-116",
+      "severity": "Major",
+      "area": "EVL",
+      "finding": "§9 states 'A is deterministic with nothing to eval'. Deterministic means reproducible, not correct — and A allocates work across 900-1,000 technicians using a weighted score whose weights (w = 1.0 / 0.2 / 0.0) are asserted without evidence, a SIM-free familiarity term, and a travel-time input that silently degrades to straight-line distance. No offline backtest of the ranking against historical dispatch outcomes is proposed, and no operational quality metrics are defined, even though the new assignmentDecision record (§7A) now captures exactly the data needed to compute them. A ranking regression would therefore be invisible: the only signal would be dispatcher complaints.",
+      "fix": "Backtest the weights against historical dispatches with known outcomes before go-live — the data exists and the ranking is cheap to replay. Define A's operational metrics with pilot baselines: rank-1 acceptance rate, offers-per-accept, cascade-exhaustion/escalation rate, travel-time-fallback rate, and time-to-assign by dispatch type. Add them to the §9 dashboard alongside B's edit rate and C's hit rate, and to the Phase-3 'pilot clean' gate.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-117",
+      "severity": "Major",
+      "area": "EVL",
+      "finding": "The release gate is arithmetic in form but has no arithmetic yet. Every target and minimum is '<TARGET / MIN — set at baseline, Open Item #14>' for both B's per-section edit rate and C's top-3 hit rate; the 2-point regression tolerance and the 200-item eval-set floor are both marked 'proposed'. Until those numbers are ratified, the only gate behaviour that actually fires is the fail-closed size floor, and 'a failed eval blocks the release' has nothing to fail against.",
+      "fix": "Make ratifying the gate numbers a dated pre-go-live task with a named owner (Open Item #14), sequenced immediately after the pilot baseline capture in Phase 3. Ratify the regression tolerance and the size floor at the same time and remove the 'proposed' label, so the gate is live before the pilot widens.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-118",
+      "severity": "Major",
+      "area": "CMP",
+      "finding": "No regulation, jurisdiction or compliance regime is named anywhere in the document, despite it repeatedly invoking 'legal basis', 'DPA', 'residency' and 'de-identified' as things to be determined. There is no statement of where ClimatePros operates, where its data subjects are, which regime governs customer site data and technician personal data, or whether any sector or contractual obligation (SOC 2, customer DPAs) applies. Consequently the Open Item #9 'data-use / DPA decision (region, retention, legal basis)' has no framework to be decided against, and the Open Item #10 erasure obligation has no source.",
+      "fix": "Add a short paragraph to §12 naming the applicable regime(s) and the data-subject jurisdictions, then state the lawful basis and retention period for each category already in the PII inventory (technician push tokens and endpointArns, technician location/ETA from Azuga, customer site and contact data, technician-authored notes and their correction history). That single addition turns three open items from open questions into decidable ones.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-119",
+      "severity": "Major",
+      "area": "CMP",
+      "finding": "The design assembles a per-technician performance-monitoring dataset that §12 never identifies as one. Across the three use cases the system will hold, per named technician: GPS-derived position and ETA from Azuga, every job offer with its accept/decline and timestamps in the append-once assignmentDecision record, a per-technician-segmented edit rate (FND-026), and time-on-review-screen per section with an explicit 'disengagement' flag. The §12 PII inventory lists only the push token as new personal data, and the /admin/dashboard is protected by nothing more specific than an admin-role check. There is no purpose limitation, no access boundary distinguishing quality monitoring from performance management, no retention period, and no employee-notice or consultation position — for a dataset covering roughly a thousand workers. Notably, this surface emerged as a side-effect of good engineering (the anti-gaming quality signal), which is exactly why it is easy to miss.",
+      "fix": "Add an employee-monitoring row to the §12 PII inventory covering purpose limitation (quality assurance of the AI output, not individual performance management), who may view per-technician metrics and under what approval, retention, and the notice or consultation position required in the relevant jurisdiction. Where the analytical purpose permits, report the FND-026 engagement signals in aggregate or pseudonymised form and reserve per-technician resolution for an explicit, logged drill-down — the disengagement flag detects a population-level trend just as well from a cohort as from a name.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-120",
+      "severity": "Major",
+      "area": "CMP",
+      "finding": "The one store holding original, non-rebuildable records has neither an erasure path nor a retention policy. §12 states that a cascading-deletion mechanism against SQL-side deletion requests 'still needs defining' (Open Item #10), and no retention period is set for summaries, summary_edits or llm_calls — the last of which persists promptScrubbed and completionRaw for every model call indefinitely, on a fixed-tier Cosmos M10 with manual step-up. Scrubbing reduces but does not eliminate the personal-data content (the document itself states a free-text name absent from the structured record can evade value matching), so this is both an erasure obligation and an unbounded-growth problem.",
+      "fix": "Define the erasure path: when a SQL-side deletion request lands, what deletes the corresponding summaries, summary_edits, llm_calls and part_predictions documents, keyed on dispatchId, and how is completion evidenced. Set a retention period per collection and add a TTL or archival policy for llm_calls — the operational need (cost tracking, debugging, the eval loop) is satisfied by a bounded window plus aggregated history, not by indefinite raw retention.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-121",
+      "severity": "Major",
+      "area": "CICD",
+      "finding": "The release chapter rests entirely on 'Deployment rides ClimatePros' existing pipelines — Stream 1 adds no new tooling', but those pipelines are never described, while the chapter asserts the capabilities they must already provide: lint/unit/integration stages, container image vulnerability scanning as a promotion gate, eval-set execution as a blocking gate, revision-based rollback on both ECS Fargate and Azure Container Apps, terraform apply across two clouds with remote state locking, and a gated pre-deploy migration stage running three different migration strategies. 'Adds no new tooling' is a cost saving only if the tooling exists; as written it is an unvalidated dependency carrying the whole chapter.",
+      "fix": "Inventory the existing ClimatePros pipeline against that capability list and record each gap as a work item with an owner and an estimate — particularly the cross-cloud pieces (Azure Container Apps revisions, Terraform against two providers) which an AWS/.NET-oriented pipeline is least likely to already have. Confirm the pipeline can run the eval gate at all, since that requires the Staging model stack to be reachable from CI.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-122",
+      "severity": "Major",
+      "area": "CST",
+      "finding": "There are no unit economics anywhere in §10. The chapter gives monthly totals by scenario but no cost per close-out, per dispatch or per parts prediction, and the one per-unit claim — 'the marginal cost of a B/C call is a fraction of a cent' — is asserted rather than derived, and is only true because the GPU capital cost is excluded (FND-101). With ~700 dispatches/day and a stated fixed floor, each of these is a one-line division, and they are what the business actually needs to judge whether the assist pays for itself against the 5-8 minutes of technician time B is designed to save.",
+      "fix": "Publish cost-per-close-out, cost-per-dispatch and cost-per-prediction at the typical scenario, computed from the stated volumes, and show them both with and without amortised on-prem inference capital once FND-101 is closed. Pair the per-close-out figure with the time saved so the unit economics are legible as a business case, not just a cloud bill.",
+      "status": "Resolved",
+      "authorResponse": null,
+      "adjudication": "RESOLVED. §10 now carries a \"Unit economics\" paragraph derived from figures already in the chapter with the division shown: ~700 dispatches/day × 30 ≈ ~21,000 dispatches/month, cost per dispatch = Typical total ÷ 21,000 ≈ $0.009–$0.010, and the result is set against B’s time saving (\"roughly 5–8 minutes of technician time returned per job for ~1¢ of cloud spend\"). Notably, the one ratio that is not established — close-outs per dispatch — is written out as an explicit assumption rather than silently equated, and cost-per-parts-prediction is deferred rather than fabricated. That is the right instinct and closes the finding. One residual, the full-allocation method (each per-unit figure divides the whole shared bill by that unit’s own volume, so the three figures cannot be summed), is carried forward as FND-143.",
+      "followUps": [],
+      "resolvedOn": "2026-08-03 13:25",
+      "decisionId": null
+    },
+    {
+      "id": "FND-123",
+      "severity": "Major",
+      "area": "CST",
+      "finding": "The headline totals are single-environment and known-stale. §10 notes in one clause that 'Figures are for one environment; Dev/Staging each duplicate the bill' but never carries that into a total, so real spend is roughly three times the ~$179-$255/month a reader will quote. The vector-store line still carries the ~$5/mo figure derived from the 3-4K sizing that §4 and §7C both explicitly supersede, with full-corpus seeding acknowledged to 'materially raise that line and these totals'. And Cosmos storage growth is not modelled at all, though llm_calls writes one document with a full scrubbed prompt and raw completion per model call, against a fixed M10 tier with manual step-up.",
+      "fix": "Publish an all-environments total beside the single-environment one, noting that Dev and Staging can carry reduced tiers so the multiplier is under 3x if sized deliberately. Re-derive the vector-store line under both Open Item #3 seeding options and show both in the scenario table until the decision lands. Add a Cosmos storage-growth line driven by the llm_calls write rate and average document size, with the tier step-up point identified.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "PARTIALLY ADDRESSED — one of three elements closed, two labelled but still unresolved. (a) Single-environment totals: CLOSED. The scenario table now carries a second labelled row, \"Total / mo — all environments (≤3× upper bound)\" (~$537 Light / ~$576–$615 Typical / ~$690–$765 Heavy), backed by an \"All environments\" paragraph that shows the multiplication and correctly notes reduced lower-environment tiers make the real multiplier under 3×. (b) Superseded vector-store line: STILL OPEN. The ~$5/mo subset figure is retained and now explicitly marked superseded, and a second row \"Vector store — full corpus (Open Item #3)\" is added — but its value is \"<$ — to confirm>\" in all three columns, so the number is labelled rather than derived. (c) Cosmos storage growth: STILL OPEN, but improved — a formula now exists (cosmos_growth/mo = <WRITES/DAY> × <AVG DOC SIZE> × 30, against \"<M10 STORAGE CEILING — to confirm> stored\"). Every term is a placeholder, and the writes/day term is derivable from a figure the same chapter states (FND-146). Kept open on (b) and (c).",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-124",
+      "severity": "Minor",
+      "area": "OVR",
+      "finding": "Success criteria are unevenly stated. B carries a measurable target inline (close-out time from 10-15 minutes toward 5-8), C's success measure exists only as a pointer to the scope document ('the scope document's C success measure'), and A has no measurable success criterion anywhere in this document. That leaves the Phase-3 gate 'pilot clean on its own metrics' undefined for A and only loosely defined for C.",
+      "fix": "Restate A's and C's success measures inline in §1, one line each, so the architecture document reads standalone. Define 'pilot clean' numerically per use case at the Phase-2 to Phase-3 boundary — for A this is the metric set recommended in FND-116.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-125",
+      "severity": "Minor",
+      "area": "API",
+      "finding": "Versioning is inconsistent across the 14 routes: B's endpoints carry an /api/v1/ prefix while A's (/divisions/{id}/toggle, /dispatches/{id}/respond) and C's (/parts/predict, /parts/source, /parts/completions) carry none. No compatibility or deprecation policy is stated — what counts as a breaking change, how long a version is supported, how the generated .NET client and mobile app versions are coordinated with a contract change.",
+      "fix": "Apply one versioning scheme across all 14 routes in Stream1-AI-API.openapi.yaml and reflect it in §8, and add two sentences to the §8 preamble defining what constitutes a breaking change and the support window — relevant here because the mobile app min-version gate is already the rollout mechanism.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-126",
+      "severity": "Minor",
+      "area": "API",
+      "finding": "The entire request/response contract is deferred to Stream1-AI-API.openapi.yaml v1.0.0, which was not supplied with the document. Generating the pydantic models and .NET client from it is the right anti-drift mechanism and a legitimate reason for §8's brevity, but it means this document alone cannot be built from and the schemas could not be reviewed here — including the error-code catalogue, the payload shapes for the 12-section ticket, and the crossTierBufferMinutes range.",
+      "fix": "Circulate the OpenAPI file alongside this document for review and sign-off, and inline one representative request/response pair per use case in §8 (a /summarise call, a /parts/predict call, a /dispatches/{id}/respond 409) so the chapter is readable standalone by someone without the companion file.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-127",
+      "severity": "Minor",
+      "area": "FLW",
+      "finding": "C's learning-loop ingress is undecided (Open Item #4): the .NET-side trigger for POST /parts/completions is either a synchronous call on dispatch completion or an outbox row drained by a scheduled job. Under the synchronous option, an AI-tier outage or a transient failure drops completions permanently — the endpoint's idempotent upsert protects against duplicates but nothing on the caller side provides durable retry — so the self-learning index silently stops growing during exactly the periods when it is least observable.",
+      "fix": "Choose the outbox, which §8C already identifies as the more robust option, and name its owner. The §9 index-growth alert is a good detection backstop but should not be the primary mechanism for a data path that is trivially made durable.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-128",
+      "severity": "Minor",
+      "area": "FLW",
+      "finding": "Two edges of A's flow are unspecified. §8A says disabling a division 'drains to zero' but does not say what happens to cascades already in flight when the toggle goes off — do they complete, or abort and return to manual? And while §5A and §11A both state that an exhausted cascade 'escalates to a human', neither specifies what the dispatcher actually sees, where, or within what time.",
+      "fix": "Add two short rows or sentences to §5A: in-flight cascade behaviour on toggle-off (completing in-flight offers is almost certainly the right answer, since the technician already has a live offer card), and the escalation surface with its expected response time.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-129",
+      "severity": "Minor",
+      "area": "FBK",
+      "finding": "The assignmentDecision record is introduced as delivering 'the tuning signal A previously lacked', but no process consumes it. No owner, cadence or method is defined for reviewing ranking outcomes and adjusting the per-division weights, and §8A's PUT /divisions/{id}/config exposes the weights as an operational control with no stated governance over who changes them or on what evidence.",
+      "fix": "Name an owner and a review cadence for A's ranking outcomes (a monthly review of acceptance rate, escalation rate and fallback rate per division is proportionate at ~700 dispatches/day), and state who may change per-division weights and what evidence is required — otherwise the audit trail accumulates without ever closing its loop.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-130",
+      "severity": "Minor",
+      "area": "FBK",
+      "finding": "Prompt changes are gated by the eval set and ticket_standard.md is versioned with its version recorded per generated ticket — but unlike model releases, which have an exemplary procedure (pinned tag, named deployer, one-step re-pin revert, divergence alert), prompt releases have no stated authoring, review or rollback process. It is not said whether ticket_standard.md lives in the application repository, who may change it, or how a prompt version is rolled back independently of a code deploy.",
+      "fix": "Keep ticket_standard.md in the application repository so a prompt change rides the same pull-request review, eval gate and revision-based rollback as code, and say so in §11's release-management bullets alongside the model-release paragraph.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-131",
+      "severity": "Minor",
+      "area": "INF",
+      "finding": "Staging's data-handling posture is unstated. §4 is explicit and careful about Dev (de-identified or synthetic, never a raw production snapshot, FND-041) but describes Staging only as 'mirrors Prod topology', 'restricted SQL replica' and 'full model stack for eval fidelity'. Eval fidelity implies realistic data, and 'restricted SQL replica' reads as production-derived — which would mean the environment where evals and load tests actually run carries none of the protections Dev was given.",
+      "fix": "State Staging's dataset provenance and handling explicitly in the environments table, in the same terms used for Dev. If Staging does hold production-derived data, say so and state the compensating controls (access restriction, retention, no third-party model path) so the posture is deliberate rather than inferred.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-132",
+      "severity": "Minor",
+      "area": "INF",
+      "finding": "No high-availability posture is stated for the three managed stores. ElastiCache is 'Managed tier ... Fixed; sized to queue depth' with persistence on but no replica or failover mentioned; Cosmos is 'M10 (2 vCore / 8 GB), Fixed tier; manual step-up' with no HA tier noted; the vector store is 'Managed / index-sized'. Redis loss is explicitly non-critical so that one is defensible, but the AI MongoDB holds the only non-rebuildable records in the system and is described as a single fixed tier.",
+      "fix": "Add a one-line availability posture per managed store to the §4 compute sizing table (replica/zone-redundancy on or off), or record single-instance as an accepted risk with the recovery path — for Cosmos this pairs naturally with the existing RPO 1h / RTO 4h target, which single-node PITR restore may or may not meet.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-133",
+      "severity": "Minor",
+      "area": "CMP",
+      "finding": "Completed dispatch reason text is embedded and upserted into C's index, where it becomes retrieval context influencing future parts predictions. The FND-029 admission criteria filter on reason length, on parts subsequently returned or corrected, on hold-out membership and on unedited accepted predictions — but not on content. A malicious, abusive or deliberately misleading free-text note therefore persists as a retrieval influence, and the same text is a prompt-injection vector into C's pipeline.",
+      "fix": "Either state the blast radius explicitly as accepted (the output is a ranked parts list that the technician always overrides, with no tool use and no autonomous action, so the realistic harm is a poor suggestion) or add a lightweight content check to the admission criteria. Stating it as accepted is likely the right answer here; the point is that the decision should be visible.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-134",
+      "severity": "Minor",
+      "area": "CST",
+      "finding": "Three third-party integrations carry no cost line. Google geocoding is named as an active dependency ('Google is used for geocoding only') with no volume, no rate and no line item, and the §9 spend alert covers travel-time lookups specifically rather than geocoding. The CP API Gateway / United Refrigeration integration has no cost line at all. And Azuga's ~$0 marginal cost is contingent on Open Item #11 contract coverage of ~28,000 lookups/day, which is unconfirmed.",
+      "fix": "Add a third-party line per integration to §10 — even at $0 — each with the volume assumption behind it, so a later volume change is visible as a cost change. Broaden the §9 metered-geo-spend alert to cover geocoding as well as travel time.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "PARTIALLY ADDRESSED — the named third-party integrations are now itemised properly; the network-connectivity lines are still absent. §10 gains a \"Third-party integrations\" subsection with three entries, and the quality is high: Google geocoding is argued to $0 incremental on the specific ground that the existing FieldJetX intake already geocodes (SystemService.cs) and Stream 1 adds no new Google call path, with the account terms explicitly \"not reviewed\" and Paul Prieur named as the confirmer (Open Item #15); the CP API Gateway entry refuses to state $0 at all, naming the APIM tier and the Function App hosting plan as the two figures needed first and flagging that the current integration points at Development/Sandbox (Open Item #16); Azuga is carried at $0 against the contracted nearestvehicles response with coverage unconfirmed (Open Item #11). All three appear as scenario-table rows. Two gaps keep this open: neither of the two network seams the architecture requires (§4 Seam 1 AWS↔Azure, §4 Seam 2 Azure→on-prem) has a cost line anywhere (FND-142), and the geocoding extension §10 instructs for the §9 spend alert was never applied to the §9 alert table (FND-147).",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-135",
+      "severity": "Minor",
+      "area": "OBS",
+      "finding": "The scrub is fail-closed — on any scrub error or timeout the model call is not made, B degrades to the manual recap and C returns 503 — and scrubOutcome is recorded per call, but no alert watches the fail-closed rate. A partial failure (one entity class matcher erroring on a subset of inputs) would silently remove the AI assist for an affected cohort while total volume stays high enough not to trip the usage-cliff alert.",
+      "fix": "Add a scrubOutcome fail-closed rate row to the §9 alert table, with a low absolute threshold and a 15-minute window, owned by the same rotation as the model error rate.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-136",
+      "severity": "Minor",
+      "area": "EVL",
+      "finding": "For C, retrieval quality is measured only end-to-end. Top-3 hit-rate scores the full pipeline (retrieve, threshold-gate, cube-and-accumulate, rank), so a regression in the retrieval stage itself — a worse embedding, a mis-set SIM_THRESHOLD, a degraded index — can be partially masked by the aggregation, and basedOn reports support rather than correctness. The rubric distinction between retrieval and downstream quality is therefore only half made.",
+      "fix": "Report recall at K (does the neighbour set contain dispatches that actually used the correct part) alongside top-3 hit-rate in the backtest, so a retrieval regression is attributable to the retrieval stage rather than inferred from an end-to-end drop.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-137",
+      "severity": "Minor",
+      "area": "CICD",
+      "finding": "No versioning scheme, release cadence or changelog discipline is stated for the deliverables themselves. The document versions itself (1.3) and the OpenAPI file (1.0.0), but nothing says how the FastAPI service, the worker image or the mobile app are versioned, how often releases ship, or how the mobile min-version gate is coordinated with a contract change. The model-deployer role also remains '<ROLE — to confirm: ClimatePros infrastructure with techjays sign-off>'.",
+      "fix": "State the versioning scheme and expected release cadence for each deployable in §11, and name the model-deployer role as part of Open Item #1 — a one-step revert procedure is only one step if someone is authorised to take it.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-138",
+      "severity": "Nit",
+      "area": "API",
+      "finding": "GET /admin/dashboard is listed with a purpose ('Edit-rate, latency, cost, parse failures — read from the AI MongoDB') and a latency target but no response type. §9 says the dashboard is 'served by the same FastAPI container from the AI MongoDB — no separate web app, proxied through .NET', which leaves it ambiguous whether the route returns rendered HTML or JSON consumed by a .NET-rendered view.",
+      "fix": "State the response type in the OpenAPI file and in §8B's row.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-139",
+      "severity": "Nit",
+      "area": "DAT",
+      "finding": "sourcing.crossTierBufferMinutes is well typed (integer, minutes, nullable, default null meaning pure owned-first) but its valid range is '<MIN-MAX — to confirm with ClimatePros>'. The Phase-1 default makes this non-blocking, but an unbounded integer on a knob that can make a paid vendor tier outrank free owned stock should not ship without a range.",
+      "fix": "Agree the range with ClimatePros before the config surface ships and pin it in the OpenAPI file — a sensible upper bound also prevents a mis-set value from quietly turning owned-first ordering off.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": "Still open — this revision touched §10 Cost Projection, the §10-related Open Items (#1 hardware line, #15 Google billing account, #16 CP API Gateway tier) and the \"Pending re-pricing\" banner. The text this finding is raised against is unchanged in the revised document.",
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-140",
+      "severity": "Major",
+      "area": "CST",
+      "finding": "§10 forecloses the outcome of the measurement it depends on. The \"Growth trigger\" paragraph states that the pre-go-live load test \"validates the headroom assumption and does not change the $0 procurement position for Stream 1\" — but the whole purpose of that test is that it could fail, and if 2× DGX Spark cannot sustain B and C at projected peak, procurement is exactly what follows. The device class makes this a live question rather than a formality: DGX Spark is a unified-memory desktop-class system whose token-generation throughput is memory-bandwidth-bound, which is the binding constraint for concurrent LLM serving, and §4 still records max-concurrent-sequences and measured tokens/sec as unmeasured. So the chapter now states a conclusion (\"$0, and the test cannot change it\") ahead of the evidence, which is a softer version of the same pattern FND-101 was raised against. Compounding it, no downside band is offered anywhere — the round-1 fix asked for \"$0 with the specific existing host named and its measured headroom, or a procurement range\", and the revision supplies the host but neither the headroom nor the range — and the attestation itself is unattributed: \"ClimatePros has confirmed\" names no person and no date, in a chapter that names Paul Prieur for the two smaller open items (#15, #16).",
+      "fix": "Replace the foreclosing clause with a contingency: \"if the load test does not demonstrate headroom at projected peak, additional capacity is a separate sizing and procurement exercise with an indicative range of <LOW–HIGH — to derive> and owner <NAME>\". Attribute the attestation the way #15 and #16 are attributed — name the ClimatePros engineer and the date the hardware and no-procurement position were confirmed — and mirror it in Open Item #1, which currently asserts \"Hardware is confirmed: 2× NVIDIA DGX Spark\" with no source. State the concurrency the $0 position assumes (peak simultaneous close-outs plus parts searches) so the load test has a pass/fail number rather than a direction.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": null,
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-141",
+      "severity": "Major",
+      "area": "ARC",
+      "finding": "The confirmed serving facts landed in the cost chapter and were never propagated to the capacity chapter that owns them, so the document now contradicts itself on its most load-bearing new fact. §10 states the model is Qwen3-VL-30B-A3B-Instruct (model_type qwen3_vl_moe), 30B total / 3B active MoE, 128K context, served by vLLM as primary-vl on 2× NVIDIA DGX Spark with BAAI/bge-m3 embeddings, and the Appendix records \"Hardware is confirmed: 2× NVIDIA DGX Spark\". Meanwhile §4 \"Model identity & serving facts (FND-005)\" — which §3 explicitly designates as the place where \"the full serving facts and measured capacity are specified\" — still reads \"<QWEN3-VL-MOE EXACT TAG / REVISION — to confirm>, <TOTAL PARAMETER COUNT — to confirm> total / <ACTIVE PARAMETER COUNT — to confirm> active parameters … Hardware: <GPU MODEL × COUNT — to confirm>, <VRAM — to confirm>\", and §3 still carries \"<QWEN3-VL-MOE EXACT TAG / REVISION — to confirm>\". An engineer sizing the admission-control semaphore or the load test reads §4, and §4 tells them the hardware is unknown. Worse, the propagation is partial — quantisation, max-concurrent-sequences and measured throughput are genuinely still open — so a reader has no way to tell which of §4’s placeholders are stale and which are live, which is a more damaging state than the original uniformly-unknown block.",
+      "fix": "Move the confirmed facts into §4 Capacity as the single source: model tag Qwen3-VL-30B-A3B-Instruct (add the revision/commit pin, still open), 30B total / 3B active, 128K context = vLLM max-model-length, served as primary-vl, hardware 2× NVIDIA DGX Spark with unified memory per unit stated, embeddings BAAI/bge-m3 1024-dim. Update §3’s \"Model identity (FND-005)\" line to point at the resolved value rather than a placeholder. Narrow Open Item #1 to what is genuinely unmeasured — quantisation scheme, vLLM max-concurrent-sequences, measured tokens/sec at B’s prompt sizes, the derived max sustained requests/minute, and the Seam-2 mechanism/bandwidth/latency — so every remaining \"<to confirm>\" in §4 is known to be live. Have §10 cite §4 for these facts rather than restating them, so the two chapters cannot drift again.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": null,
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-142",
+      "severity": "Major",
+      "area": "CST",
+      "finding": "Neither of the two network seams the architecture requires has a cost line anywhere in §10, although both are mandatory production infrastructure on the critical path of every B and C request and both are named as components in §4. Seam 1 (AWS↔Azure) targets \"a site-to-site VPN or VPC-to-VNet peering\"; Seam 2 (Azure→on-prem) is \"<ExpressRoute / site-to-site VPN / authenticated private endpoint — to confirm>\". These are metered services with real monthly floors — an Azure VPN Gateway and its AWS counterpart together are of the same order as the ~$94/mo Cosmos line, and an ExpressRoute circuit is materially more — so against a ~$179–$255/mo single-environment total this is not a rounding error, and it multiplies across the three environments the new all-environments row now prices. The omission is visible by contrast: the chapter itemises SNS at ~$0.04/mo and carries Azuga, Google and the CP Gateway at $0 as named lines, yet the connectivity without which the AI tier cannot reach its models appears nowhere. The cross-cloud paragraph addresses only data-transfer egress (\"get an AWS Data Transfer OUT quote once real volume is known\") and not the gateway/circuit charge, which is fixed and independent of volume.",
+      "fix": "Add two rows to the scenario table: \"Cross-cloud connectivity — Seam 1 (AWS↔Azure)\" and \"On-prem connectivity — Seam 2 (Azure→ClimatePros)\", each carrying the monthly floor of the option under consideration as a low/high band across the mechanisms §4 lists, and mark them conditional on Open Item #6 and Open Item #1 exactly as the CP Gateway row is marked conditional on #16. Note in the \"All environments\" paragraph whether lower environments share one circuit or need their own, since that changes the 3× multiplier materially. Also size the egress line rather than deferring it — B+C call volume and payload size are both derivable from figures already in §10 and §6, and the answer is almost certainly small enough to close the item.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": null,
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-143",
+      "severity": "Minor",
+      "area": "CST",
+      "finding": "The new unit economics allocate the entire shared monthly bill to each unit independently, so the three figures are not additive and cost-per-parts-prediction will double-count once the C rate lands. Cost per dispatch = Typical total ÷ monthly dispatches; cost per close-out = the same Typical total ÷ the same denominator; cost per parts prediction = \"Typical total ÷ <C INVOCATION RATE>\". Each divides 100% of a bill shared across A, B and C by one use case’s own volume, with no attribution split — A drives Fargate, Redis and SNS; B and C drive Container Apps, Cosmos and the vector store — so a reader building a business case who sums the three per-unit costs overstates spend by roughly 3×. The document is careful about the close-out denominator (it writes out the unestablished one-close-out-per-dispatch assumption rather than assuming it silently), which makes the unflagged allocation issue the more visible gap. Separately, \"All three figures exclude amortised on-prem inference capital, which is $0 incremental for Stream 1\" conflates two different things: the incremental cost is $0, but the amortised capital cost of 2× DGX Spark is not — it is simply already owned and not allocated to this stream.",
+      "fix": "State the allocation basis explicitly — either split the shared lines across A/B/C by driver (Fargate/Redis/SNS to A; Container Apps/Cosmos/vector store to B+C; Monitor pro-rata) and derive each per-unit cost from its own slice, or keep the full-bill division and add one sentence: \"each figure carries the whole shared bill against that unit’s volume; they are alternative views of the same $192–$205 and must not be summed\". Reword the capital sentence to \"excludes on-prem inference capital, which is already owned and carried at $0 incremental to Stream 1 (see On-prem inference)\".",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": null,
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-144",
+      "severity": "Minor",
+      "area": "CST",
+      "finding": "The scenario Total row sums a table that contains two explicitly unpriced rows, and carries no annotation saying so. \"Vector store — full corpus (Open Item #3)\" reads \"<$ — to confirm>\" and \"CP API Gateway / United (ClimatePros-operated)\" reads \"<tier — to confirm>\" in all three columns, yet \"Total / mo (est.) ~$179 / ~$192–$205 / ~$230–$255\" and the derived all-environments row present as complete figures. The \"Pending re-pricing\" banner does mention both open items in prose, and the arithmetic of the priced rows checks out exactly, so this is a presentation defect rather than an error — but the total is the line that gets quoted out of context into a budget conversation, and the exclusions travel with the banner rather than with the number.",
+      "fix": "Append the exclusion to the Total row label itself — \"Total / mo (est., excludes full-corpus vector store and CP APIM tier)\" — or add a bracketed \"+ 2 lines pending\" marker in the total cells, so the caveat cannot be separated from the figure. Do the same on the all-environments row, and add the two FND-142 connectivity lines to the same exclusion list until they are priced.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": null,
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-145",
+      "severity": "Minor",
+      "area": "CST",
+      "finding": "C’s invocation rate now gates three separate §10 figures but is not itself an open item with an owner, and the one place it is cited points at the wrong item. Unit economics defers cost-per-parts-prediction to \"<C INVOCATION RATE — to confirm, Open Item #16>\", and the CP API Gateway paragraph defers its volume to \"<CALLS/DAY — derive from C invocation rate>\" — but Open Item #16 owns the APIM tier and Function App hosting plan, not the invocation rate, and no item in the Appendix owns it. So the number that would turn a consumption-priced APIM tier from a $0 assumption into a real marginal cost has no owner and no due date, and the two dependent figures reference each other in a small circle. The rate is also more tractable than the placeholder implies — it is a fraction of the ~700 dispatches/day the chapter already uses, and the scope work behind Parts Finder should support at least a band.",
+      "fix": "Add an Open Item #17 — \"Parts Finder invocation rate: expected /parts/predict and /parts/source calls per day as a fraction of ~700 daily dispatches\" — with a ClimatePros owner, and re-point both §10 references at it. Pending confirmation, carry a stated band (for example 10% / 30% / 60% of dispatches) so cost-per-prediction and the CP Gateway volume can both be shown as ranges rather than blanks.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": null,
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-146",
+      "severity": "Minor",
+      "area": "CST",
+      "finding": "The new Cosmos growth formula is left entirely in placeholders even though the chapter already states the figure that drives it. \"cosmos_growth/mo = <WRITES/DAY — to confirm> × <AVG DOC SIZE — to measure> × 30\" sits four lines below the unit-economics derivation of ~21,000 dispatches/month — and §7B specifies one llm_calls document per model call, §5B specifies one summarise call per close-out plus analyse re-runs, so writes/day is roughly 700 for B plus C’s predicts, not an unknown. Average document size is likewise estimable from the known payload (a scrubbed 12-section prompt plus the raw completion). Because both terms are blank, the question the formula was added to answer — how long the flat ~$94/mo M10 tier lasts before the \"manual step-up\" — remains unanswered, and llm_calls has no retention policy to bound it (FND-120). The §9 \"Cosmos RU + storage headroom < 20%\" alert is a good backstop but it detects the problem rather than budgeting for it.",
+      "fix": "Substitute the derived write rate (B close-outs plus analyse re-runs plus C predictions per day, from the ~21,000 dispatches/month figure already in the chapter) and an estimated average document size, and state the resulting months-to-ceiling against the M10 storage limit. If that crosses the horizon of the pilot, show the step-up tier and its cost as a second scenario row rather than leaving it to the alert.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": null,
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-147",
+      "severity": "Minor",
+      "area": "OBS",
+      "finding": "An alert change the cost chapter instructs was never made in the observability chapter. §10’s Google entry ends \"Extend the §9 metered-geo-spend alert to cover geocoding as well as travel-time lookups, so an unexpected call path becomes visible as spend\" — but the §9 alert table row is unchanged and still reads \"Metered geo spend (A, FND-050) | any spend > $0 on travel-time lookups\". Since the entire Google $0-incremental argument rests on Stream 1 adding no new Google call path, and the account terms are explicitly unreviewed (Open Item #15), the geocoding spend alert is the compensating control for the one assumption in the paragraph that nobody has verified — and it does not exist in the chapter that owns alerts. This is the same propagation failure as FND-141, in the opposite direction.",
+      "fix": "Edit the §9 alert row to \"any spend > $0 on travel-time or geocoding lookups\", and confirm the alert can actually see the ClimatePros Google Cloud billing account named in Open Item #15 — if the account is client-owned and outside techjays’ visibility, the alert needs a ClimatePros owner and a stated mechanism, not just a threshold.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": null,
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-148",
+      "severity": "Nit",
+      "area": "CST",
+      "finding": "The Google geocoding scenario row asserts a flat \"~$0 / ~$0 / ~$0\" while the prose two paragraphs below correctly describes it as expected rather than confirmed (\"Incremental Stream 1 spend is therefore expected to be nil … the account terms have not been reviewed\"). The CP API Gateway row directly beneath it models the identical epistemic state correctly, showing \"<tier — to confirm>\" rather than a number, so the table is internally inconsistent about how it renders an unconfirmed zero.",
+      "fix": "Render the Google row as \"~$0 (expected — Open Item #15)\" in all three columns, matching the treatment the CP Gateway row already gets.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": null,
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    },
+    {
+      "id": "FND-149",
+      "severity": "Minor",
+      "area": "CICD",
+      "finding": "The document’s own change control does not record this revision. The file is titled \"§10-revised\" and §10 has been materially rewritten — a new on-prem inference line and paragraph, a new third-party integrations subsection, unit economics, an all-environments total, a Cosmos growth formula, a rewritten banner — plus new Appendix items #15 and #16 and a rewritten #1. But Document Control still reads \"Version 1.3 — Draft for client review\", the Supersedes note still ends at \"v1.3 closes the round-2 tech-lead specification review\", and the Changelog is still headed \"v1.2 → v1.3\" with its last row reading \"Version bumped to 1.3\". A reader handed this file cannot tell from inside it that it differs from the v1.3 they may already hold, and the two versions are not distinguishable by any field the document carries. For a document explicitly moving through numbered review rounds with a per-finding changelog, that is a real traceability gap — and it is the same discipline FND-137 flags for the deliverables.",
+      "fix": "Bump to v1.4 (or 1.3.1) in Document Control, add a \"v1.3 → v1.4\" changelog block with a row per round-2 finding addressed — FND-101 (§10 on-prem inference line), FND-134 (§10 third-party integrations), FND-122 (§10 unit economics), FND-123 (§10 all-environments total, Cosmos growth formula) — and record the new Open Items #15 and #16 in the Close-out row, exactly as the v1.2 → v1.3 block already does.",
+      "status": "Open",
+      "authorResponse": null,
+      "adjudication": null,
+      "followUps": [],
+      "resolvedOn": null,
+      "decisionId": null
+    }
+  ],
+  "questions": [
+    "Who at ClimatePros confirmed the 2× DGX Spark hardware and the \"no additional procurement required\" position, and on what date? §10 names Paul Prieur for the two smaller open items but leaves the largest attestation unattributed. (FND-140)",
+    "If the Open Item #1 load test shows the DGX Spark pair cannot sustain projected peak close-out plus parts-search concurrency, what actually happens? §10 states the test \"does not change the $0 procurement position for Stream 1\", which reads as though the outcome has been decided in advance. (FND-140)",
+    "What concurrency does the $0 position assume — how many simultaneous B close-outs and C searches at the busiest branch’s morning burst? Without that number the load test has a direction but no pass/fail line. (FND-140, FND-105)",
+    "Which mechanism is intended for Seam 2 (Azure→on-prem) — ExpressRoute, site-to-site VPN, or an authenticated private endpoint? The three differ by an order of magnitude in monthly cost and none of them is in §10. (FND-142)",
+    "Is the confirmed serving-fact set in §10 intended to supersede §4’s placeholders, or does §4 record a stricter standard of confirmation that §10 has not met? Either answer is fine — the document currently implies both. (FND-141)",
+    "What is the expected Parts Finder invocation rate as a fraction of the ~700 daily dispatches? Three §10 figures depend on it and no open item owns it. (FND-145)",
+    "Why is the AI tier on Azure when the platform is on AWS and the models are on-prem? Is there an existing Azure commitment, an Azure AI Search dependency, or a client mandate behind the placement rule? (FND-102)",
+    "Which Azure region, and is there a residency constraint driving it? The newly-documented CP API Gateway adds another Azure component with no stated region. (FND-103)",
+    "Is Stream1-AI-API.openapi.yaml v1.0.0 complete today, and can it be circulated with this document for review? Several findings here would resolve or sharpen if the schemas could be read. (FND-126)",
+    "Which regulatory regime governs ClimatePros’ customer and employee data, and where are the data subjects? (FND-118)",
+    "Has the per-technician monitoring surface — GPS/ETA, offer outcomes, per-technician edit rates, time-on-review-screen with a disengagement flag — been discussed with ClimatePros HR or employee representatives? It may already be covered by existing telematics consent, in which case this is a documentation gap rather than a design one. (FND-119)",
+    "Does Staging hold production-derived data? The Dev protections are explicit; Staging’s provenance is not stated. (FND-131)",
+    "Does the existing ClimatePros pipeline already provide container vulnerability scanning, revision-based rollback on Azure Container Apps as well as ECS, cross-cloud terraform apply, and a gated migration stage — or are these capabilities this project must add? (FND-121)",
+    "Are the 12 ticket sections already defined in ticket_standard.md v1, and can that file be attached or its section list inlined? (FND-109)",
+    "Is there an existing on-call rotation and escalation path that the §9 alert table should map onto, or does one need to be created for this project? (FND-114)"
+  ],
+  "nextActions": [
+    "Propagate §10’s confirmed serving facts into §4 and §3, and narrow Open Item #1 to what is genuinely unmeasured (quantisation, max-concurrent-sequences, measured tokens/sec, Seam-2 mechanism/bandwidth/latency). This is a same-day edit that removes a direct self-contradiction on the revision’s single most load-bearing new fact, and it is the highest-value action in this round. (FND-141)",
+    "Un-foreclose the load test: replace \"does not change the $0 procurement position\" with a stated contingency and an indicative procurement band, name the ClimatePros engineer and date behind the hardware attestation, and state the peak concurrency the $0 position assumes so the test has a pass/fail number. (FND-140)",
+    "Price both network seams — Seam 1 (AWS↔Azure) and Seam 2 (Azure→on-prem) — as low/high bands across the mechanisms §4 lists, conditional on Open Items #6 and #1, and note whether lower environments share a circuit before applying the 3× all-environments multiplier. (FND-142)",
+    "Tidy the §10 presentation in four short edits: annotate the Total row with what it excludes; add one sentence saying the three per-unit figures are alternative views of the same bill and must not be summed; substitute the derived llm_calls write rate into the Cosmos growth formula and state months-to-M10-ceiling; give the C invocation rate its own Open Item with an owner. (FND-144, FND-143, FND-146, FND-145)",
+    "Apply the two cross-chapter edits the revision implied but did not make: extend the §9 metered-geo-spend alert to cover geocoding, and bump the document version with a v1.3 → v1.4 changelog block so this revision is identifiable from inside the file. (FND-147, FND-149)",
+    "Schedule the Open Item #1 measurement on the DGX Spark pair as a dated pre-build task with named owners on both sides. It remains the single highest-leverage action in the document: it unblocks capacity sizing, the admission-control semaphore, the P95 targets, the timeout ceiling, the load-test gate and the cost line. (FND-105, FND-140)",
+    "Decide the vector store and its seeding (Open Item #3) with the §12 privacy posture as the first selection criterion, driven by running the C backtest against the filtered subset — then pin the index parameters and re-derive the §10 line and the full-corpus row. (FND-111, FND-112, FND-123)",
+    "Add the compliance foundation to §12: name the regime and jurisdictions, pin the Azure region, add the employee-monitoring row with purpose limitation and access boundary, and define the erasure path and per-collection retention. Four paragraphs that close four Majors and make three open items decidable. (FND-118, FND-119, FND-120, FND-103)",
+    "Make the document buildable on two specifics: enumerate the 12 ticket sections, and add types and nullability to the four MongoDB collection shapes. (FND-109, FND-110)",
+    "Fix the retry semantics before they are coded: separate the P95 target from the hard timeout, write \"do not retry on timeout\" into the client contract, and add an idempotency key to /summarise. (FND-108)",
+    "Write the on-prem model tier’s continuity plan now that the hardware is identified: RTO, the single-unit-loss case (two units, so losing one halves capacity), spare/failover posture, and patching and capacity-expansion ownership. (FND-104)",
+    "Assign owners and provisional thresholds to the §9 alert table, and state how a trace is followed across CloudWatch and Azure Monitor. (FND-114, FND-115)"
+  ]
+}</script>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="scoreball"><span class="num" id="tb-score">–</span><span class="den">/10</span></div>
+    <h1 class="title" id="tb-title">Technical Specification Review<small id="tb-sub"></small></h1>
+    <span class="verdict-badge" id="tb-verdict">—</span>
+  </div>
+</header>
+
+<div class="wrap" id="root">
+  <div class="meta" id="meta"></div>
+  <div id="round-banner"></div>
+
+  <div class="card" id="exec">
+    <h2>Executive summary</h2>
+    <p class="summary-text" id="exec-summary"></p>
+    <div id="gating-wrap"></div>
+    <div id="strengths-wrap"></div>
+  </div>
+
+  <div class="section-label">Scorecard</div>
+  <div class="card"><table class="scorecard"><thead><tr>
+    <th>#</th><th>Area</th><th class="col-bar">Score</th><th>/10</th><th>Status</th>
+  </tr></thead><tbody id="scorecard-body"></tbody></table></div>
+
+  <div class="section-label">Area detail</div>
+  <div class="toolbar">
+    <button class="btn" id="expandAll">Expand all</button>
+    <button class="btn" id="collapseAll">Collapse all</button>
+  </div>
+  <div id="areas"></div>
+
+  <div class="section-label">Findings register</div>
+  <div class="sevfilter" id="sevfilter"></div>
+  <div class="card"><table class="findings"><thead><tr>
+    <th>ID</th><th>Sev.</th><th>Status</th><th>Area</th><th>Finding</th><th>Suggested fix</th>
+  </tr></thead><tbody id="findings-body"></tbody></table></div>
+
+  <div class="section-label">Open items — respond &amp; export</div>
+  <p class="progress-line" style="margin:4px 0 0">Type a response under each open finding, choose an intent, then <b>Export responses</b> — the page downloads a Markdown file named for this review. Save it in <code>tl-output/</code> and run <code>/tl:resolve</code> on it to have the agent adjudicate and close items.</p>
+  <div id="respond-list"></div>
+  <div class="respond-actions">
+    <button class="btn primary" id="exportBtn">Export responses</button>
+    <span id="export-note"></span>
+  </div>
+
+  <div class="section-label">Clarifying questions for the author</div>
+  <div class="card"><ul class="qs" id="questions"></ul></div>
+
+  <div class="section-label">Recommended next actions</div>
+  <div class="card"><ol class="actions" id="actions"></ol></div>
+
+  <footer id="footer"></footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+  var SEV = {
+    Blocker: { c: "var(--blocker)" }, Major: { c: "var(--major)" },
+    Minor: { c: "var(--minor)" }, Nit: { c: "var(--nit)" }
+  };
+  var SEV_ORDER = ["Blocker", "Major", "Minor", "Nit"];
+  var STATUS = {
+    "Open": "var(--muted)", "Needs-verification": "var(--minor)", "Responded": "var(--accent)",
+    "Resolved": "var(--excellent)", "Accepted-risk": "var(--accent)", "Won't-fix": "var(--stub)"
+  };
+  var TERMINAL = { "Resolved": 1, "Accepted-risk": 1, "Won't-fix": 1 };
+  function statusOf(f) { return f.status || "Open"; }
+  function statusColor(s) { return STATUS[s] || "var(--muted)"; }
+
+  function el(tag, attrs, kids) {
+    var n = document.createElement(tag);
+    if (attrs) for (var k in attrs) {
+      if (k === "class") n.className = attrs[k];
+      else if (k === "html") n.innerHTML = attrs[k];
+      else if (k === "text") n.textContent = attrs[k];
+      else n.setAttribute(k, attrs[k]);
+    }
+    (kids || []).forEach(function (c) { if (c) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c); });
+    return n;
+  }
+  function scoreColor(s) {
+    if (s === "N/A" || s == null) return "var(--na)";
+    s = +s;
+    if (s >= 9) return "var(--excellent)"; if (s >= 7) return "var(--good)";
+    if (s >= 5) return "var(--adequate)"; if (s >= 3) return "var(--weak)";
+    if (s >= 1) return "var(--stub)"; return "var(--absent)";
+  }
+  function verdictColor(v) {
+    v = (v || "").toLowerCase();
+    if (v.indexOf("ready to build") === 0) return "var(--excellent)";
+    if (v.indexOf("caveat") >= 0) return "var(--adequate)";
+    if (v.indexOf("not ready") >= 0 || v.indexOf("major rework") >= 0) return "var(--absent)";
+    return "var(--weak)"; // "significant gaps"
+  }
+
+  var data;
+  try { data = JSON.parse(document.getElementById("review-data").textContent); }
+  catch (e) {
+    document.getElementById("root").innerHTML =
+      '<div class="card"><h2>No review data</h2><p class="empty">This template has not been populated yet. ' +
+      'The TL agent injects the review JSON into the <code>#review-data</code> block.</p></div>';
+    return;
+  }
+
+  // ---- Header ----
+  document.getElementById("tb-score").textContent = (data.overallScore != null ? data.overallScore : "–");
+  document.getElementById("tb-score").style.color = scoreColor(Math.round(data.overallScore));
+  document.getElementById("tb-title").firstChild.textContent = (data.project || "Technical Specification") + " — Review";
+  document.getElementById("tb-sub").textContent = data.documentVersion ? ("v" + data.documentVersion) : "";
+  var vb = document.getElementById("tb-verdict");
+  vb.textContent = data.verdict || ""; vb.style.background = verdictColor(data.verdict);
+
+  // ---- Meta chips ----
+  var sys = data.system || {};
+  var meta = document.getElementById("meta");
+  function chip(label, val, cls) { return el("span", { class: "chip " + (cls || "") },
+    [document.createTextNode(label + " "), el("b", { text: val })]); }
+  if (data.documentReviewed) meta.appendChild(chip("Document:", data.documentReviewed));
+  meta.appendChild(chip("Reviewed:", data.reviewDate || "—"));
+  meta.appendChild(chip("AI / LLM system?", sys.isAI ? "Yes" : "No", sys.isAI ? "yes" : "no"));
+  meta.appendChild(chip("Multiple systems?", sys.multiSystem ? "Yes" : "No", sys.multiSystem ? "yes" : "no"));
+
+  // ---- Executive summary ----
+  document.getElementById("exec-summary").textContent = data.executiveSummary || "";
+  var findingById = {}; (data.findings || []).forEach(function (f) { findingById[f.id] = f; });
+  var gating = (data.gatingFindings || []).map(function (id) { return findingById[id]; }).filter(Boolean);
+  if (gating.length) {
+    var gw = document.getElementById("gating-wrap");
+    gw.appendChild(el("h4", { class: "section-label", text: "Gating findings", style: "margin-top:6px" }));
+    var ul = el("ul", { class: "gating" });
+    gating.forEach(function (f) {
+      ul.appendChild(el("li", { style: "border-left-color:" + SEV[f.severity].c }, [
+        el("a", { href: "#" + f.id, class: "fid", text: f.id }),
+        el("span", {}, [el("span", { class: "sevtag", style: "background:" + SEV[f.severity].c, text: f.severity }),
+          document.createTextNode(" " + f.finding + " "),
+          el("span", { class: "fix", text: "→ " + f.fix })])
+      ]));
+    });
+    gw.appendChild(ul);
+  }
+  if (data.strengths && data.strengths.length) {
+    var sw = document.getElementById("strengths-wrap");
+    sw.appendChild(el("h4", { class: "section-label", text: "Notable strengths", style: "margin-top:14px" }));
+    var sl = el("ul", { class: "strength-list" });
+    data.strengths.forEach(function (s) { sl.appendChild(el("li", { text: s })); });
+    sw.appendChild(sl);
+  }
+
+  // ---- Scorecard ----
+  var body = document.getElementById("scorecard-body");
+  var lastGroup = null;
+  (data.areas || []).forEach(function (a) {
+    if (a.group && a.group !== lastGroup) {
+      lastGroup = a.group;
+      var gr = el("tr", { class: "grp-row" }); gr.appendChild(el("td", { colspan: "5", text: a.group }));
+      body.appendChild(gr);
+    }
+    var isNA = (a.score === "N/A" || a.score == null);
+    var col = scoreColor(a.score);
+    var bar = el("div", { class: "bar" });
+    if (!isNA) bar.appendChild(el("span", { style: "width:" + (a.score * 10) + "%;background:" + col }));
+    var tr = el("tr", { class: "area-row", "data-area": a.code });
+    tr.appendChild(el("td", { class: "areacode", text: a.num }));
+    tr.appendChild(el("td", {}, [el("span", { text: a.name }), document.createTextNode("  "),
+      el("span", { class: "areacode", text: a.code })]));
+    tr.appendChild(el("td", { class: "col-bar" }, [bar]));
+    tr.appendChild(el("td", { class: "scorenum", style: "color:" + col, text: isNA ? "N/A" : a.score }));
+    tr.appendChild(el("td", {}, [el("span", { class: "statuslbl", style: "color:" + col, text: a.band || "" })]));
+    tr.addEventListener("click", function () {
+      var d = document.getElementById("area-" + a.code);
+      if (d) { d.open = true; d.scrollIntoView({ behavior: "smooth", block: "start" }); }
+    });
+    body.appendChild(tr);
+  });
+  var totColor = scoreColor(Math.round(data.overallScore));
+  var totr = el("tr", { class: "total-row" });
+  totr.appendChild(el("td", { colspan: "3", text: "Overall (avg of applicable)" }));
+  totr.appendChild(el("td", { class: "scorenum", style: "color:" + totColor, text: data.overallScore }));
+  totr.appendChild(el("td", {}, [el("span", { class: "statuslbl", style: "color:" + totColor, text: data.verdict || "" })]));
+  body.appendChild(totr);
+
+  // ---- Area detail ----
+  var areasWrap = document.getElementById("areas");
+  (data.areas || []).forEach(function (a) {
+    var isNA = (a.score === "N/A" || a.score == null);
+    var col = scoreColor(a.score);
+    var d = el("details", { class: "area", id: "area-" + a.code });
+    if (!isNA && +a.score < 5) d.open = true; // surface the weak areas by default
+    var sum = el("summary", {}, [
+      el("span", { class: "swatch", style: "background:" + col }),
+      el("span", { class: "aname", text: a.num + ". " + a.name }),
+      el("span", { class: "areacode", text: a.code }),
+      el("span", { class: "ascore", style: "color:" + col, text: isNA ? "N/A" : (a.score + "/10") })
+    ]);
+    var b = el("div", { class: "area-body" });
+    b.appendChild(el("h4", { text: "Assessment" }));
+    b.appendChild(el("p", { text: a.assessment || "—" }));
+    b.appendChild(el("h4", { text: "Findings" }));
+    if (a.findingIds && a.findingIds.length) {
+      var cr = el("div", { class: "fnd-chiprow" });
+      a.findingIds.forEach(function (id) {
+        var f = findingById[id];
+        var chip = el("span", { class: "fnd-chip", title: f ? (f.severity + ": " + f.finding) : "",
+          style: f ? ("border-left:3px solid " + SEV[f.severity].c) : "", text: id });
+        chip.addEventListener("click", function () { jumpTo(id); });
+        cr.appendChild(chip);
+      });
+      b.appendChild(cr);
+    } else { b.appendChild(el("p", { class: "empty", text: "None — covered well." })); }
+    if (a.suggestions) { b.appendChild(el("h4", { text: "Suggestions" })); b.appendChild(el("p", { text: a.suggestions })); }
+    if (a.strengths) { b.appendChild(el("h4", { text: "Strengths" })); b.appendChild(el("p", { text: a.strengths })); }
+    d.appendChild(sum); d.appendChild(b); areasWrap.appendChild(d);
+  });
+  document.getElementById("expandAll").addEventListener("click", function () {
+    document.querySelectorAll("details.area").forEach(function (d) { d.open = true; }); });
+  document.getElementById("collapseAll").addEventListener("click", function () {
+    document.querySelectorAll("details.area").forEach(function (d) { d.open = false; }); });
+
+  // ---- Findings register + severity filter ----
+  var counts = { Blocker: 0, Major: 0, Minor: 0, Nit: 0 };
+  (data.findings || []).forEach(function (f) { if (counts[f.severity] != null) counts[f.severity]++; });
+  var fbody = document.getElementById("findings-body");
+  var sorted = (data.findings || []).slice().sort(function (x, y) {
+    return SEV_ORDER.indexOf(x.severity) - SEV_ORDER.indexOf(y.severity) || x.id.localeCompare(y.id);
+  });
+  if (!sorted.length) { fbody.appendChild(el("tr", {}, [el("td", { colspan: "6", class: "empty", text: "No findings logged." })])); }
+  sorted.forEach(function (f) {
+    var st = statusOf(f);
+    var tr = el("tr", { id: f.id, "data-sev": f.severity });
+    if (TERMINAL[st]) tr.className = "terminal";
+    tr.appendChild(el("td", {}, [el("span", { class: "fid", text: f.id })]));
+    tr.appendChild(el("td", {}, [el("span", { class: "sevtag", style: "background:" + SEV[f.severity].c, text: f.severity })]));
+    tr.appendChild(el("td", {}, [el("span", { class: "statustag", style: "background:" + statusColor(st), text: st })]));
+    tr.appendChild(el("td", {}, [el("span", { class: "areatag", text: f.area || "" })]));
+    var fcell = el("td", {}, [document.createTextNode(f.finding || "")]);
+    if (f.adjudication) fcell.appendChild(el("span", { class: "reso-line" },
+      [el("b", { text: "↳ " + st + ": " }), document.createTextNode(f.adjudication)]));
+    tr.appendChild(fcell);
+    tr.appendChild(el("td", { text: f.fix || "" }));
+    fbody.appendChild(tr);
+  });
+
+  var active = "All";
+  var sf = document.getElementById("sevfilter");
+  function mkSev(label, count, color) {
+    var b = el("button", { class: "sevbtn", "aria-pressed": label === "All" ? "true" : "false" });
+    if (color) b.appendChild(el("span", { class: "dot", style: "background:" + color }));
+    b.appendChild(document.createTextNode(label + (count != null ? " (" + count + ")" : "")));
+    b.addEventListener("click", function () {
+      active = label;
+      sf.querySelectorAll(".sevbtn").forEach(function (x) { x.setAttribute("aria-pressed", "false"); });
+      b.setAttribute("aria-pressed", "true");
+      fbody.querySelectorAll("tr").forEach(function (tr) {
+        if (!tr.getAttribute("data-sev")) return;
+        tr.hidden = (label !== "All" && tr.getAttribute("data-sev") !== label);
+      });
+    });
+    return b;
+  }
+  sf.appendChild(mkSev("All", (data.findings || []).length, null));
+  SEV_ORDER.forEach(function (s) { sf.appendChild(mkSev(s, counts[s], SEV[s].c)); });
+
+  function jumpTo(id) {
+    if (active !== "All") sf.querySelector(".sevbtn").click();
+    var row = document.getElementById(id);
+    if (row) { row.hidden = false; row.scrollIntoView({ behavior: "smooth", block: "center" });
+      row.classList.add("flash"); setTimeout(function () { row.classList.remove("flash"); }, 1700); }
+  }
+
+  // ---- Round banner + progress ----
+  var rbWrap = document.getElementById("round-banner");
+  if (data.round && data.round > 1) {
+    var rb = el("div", { class: "round-banner" }, [el("span", { class: "pill", text: "Round " + data.round })]);
+    if (data.priorReview) rb.appendChild(el("span", { class: "progress-line", text: "resolves spec-review-" + data.priorReview }));
+    var fsAll = data.findings || [];
+    var closedN = fsAll.filter(function (f) { return TERMINAL[statusOf(f)]; }).length;
+    if (fsAll.length) rb.appendChild(el("span", { class: "progress-line",
+      text: "· " + closedN + " of " + fsAll.length + " findings closed" + (closedN < fsAll.length ? ", " + (fsAll.length - closedN) + " still open" : " — all resolved") }));
+    rbWrap.appendChild(rb);
+  }
+
+  // ---- Open items: respond & export ----
+  var openItems = (data.findings || []).filter(function (f) { return !TERMINAL[statusOf(f)]; });
+  var rl = document.getElementById("respond-list");
+  var exportBtn = document.getElementById("exportBtn");
+  var exportNote = document.getElementById("export-note");
+  if (!openItems.length) {
+    rl.appendChild(el("p", { class: "empty", text: "All findings are closed — nothing to respond to." }));
+    if (exportBtn) exportBtn.style.display = "none";
+  } else {
+    openItems.forEach(function (f) {
+      var st = statusOf(f);
+      var card = el("div", { class: "respond-card", "data-fid": f.id });
+      card.appendChild(el("div", { class: "rc-head" }, [
+        el("span", { class: "fid", text: f.id }),
+        el("span", { class: "sevtag", style: "background:" + SEV[f.severity].c, text: f.severity }),
+        el("span", { class: "statustag", style: "background:" + statusColor(st), text: st }),
+        el("span", { class: "areatag", text: f.area || "" })
+      ]));
+      card.appendChild(el("div", { class: "rc-finding", text: f.finding || "" }));
+      if (f.followUps && f.followUps.length) {
+        var fu = el("div", { class: "followups" }, [el("b", { text: "Please address:" })]);
+        var ul = el("ul"); f.followUps.forEach(function (qq) { ul.appendChild(el("li", { text: qq })); });
+        fu.appendChild(ul); card.appendChild(fu);
+      }
+      card.appendChild(el("label", { class: "fld", text: "Your response" }));
+      var ta = el("textarea", { "data-fid": f.id, placeholder: "Explain how this is handled, or why it's accepted / declined…" });
+      if (f.authorResponse) ta.value = f.authorResponse;
+      card.appendChild(ta);
+      card.appendChild(el("label", { class: "fld", text: "Intent" }));
+      var sel = el("select", { "data-fid": f.id });
+      ["resolve", "accept-risk", "need-info", "wont-fix"].forEach(function (opt) {
+        sel.appendChild(el("option", { value: opt, text: opt }));
+      });
+      card.appendChild(sel);
+      rl.appendChild(card);
+    });
+  }
+
+  if (exportBtn) exportBtn.addEventListener("click", function () {
+    var reviewId = data.reviewId || "review";
+    var L = ["---", "doc_type: spec-review-responses", "source_review: " + reviewId,
+      "spec: " + (data.documentReviewed || ""), "exported_from: html-report", "---", "",
+      "# Responses to spec-review-" + reviewId, "",
+      "> Each section is one finding. Edit the response and intent, then run `/tl:resolve` on this file.", ""];
+    var answered = 0;
+    rl.querySelectorAll(".respond-card").forEach(function (card) {
+      var fid = card.getAttribute("data-fid");
+      var f = findingById[fid] || {};
+      var resp = (card.querySelector("textarea").value || "").trim();
+      var intent = card.querySelector("select").value;
+      L.push("## " + fid + " — [" + (f.severity || "") + " · " + (f.area || "") + "] " + (f.finding || ""));
+      L.push("**Intent:** " + intent);
+      L.push("**Response:**");
+      L.push(resp || "(no response yet)");
+      L.push("");
+      if (resp) answered++;
+    });
+    var blob = new Blob([L.join("\n")], { type: "text/markdown;charset=utf-8" });
+    var url = URL.createObjectURL(blob);
+    var a = el("a", { href: url, download: "spec-review-" + reviewId + "-responses.md" });
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+    setTimeout(function () { URL.revokeObjectURL(url); }, 1500);
+    if (exportNote) exportNote.textContent = answered
+      ? "Downloaded spec-review-" + reviewId + "-responses.md (" + answered + " answered) — save it in tl-output/ and run /tl:resolve on it."
+      : "Downloaded, but no responses were filled in yet — add some and export again.";
+  });
+
+  // ---- Questions / actions / footer ----
+  var q = document.getElementById("questions");
+  (data.questions || []).forEach(function (t) { q.appendChild(el("li", { text: t })); });
+  if (!(data.questions || []).length) q.appendChild(el("li", { class: "empty", text: "None raised." }));
+  var ac = document.getElementById("actions");
+  (data.nextActions || []).forEach(function (t) { ac.appendChild(el("li", { text: t })); });
+  document.getElementById("footer").textContent =
+    "Generated by the Techjays TL Agent · tl-spec-review · " + (data.reviewDate || "");
+})();
+</script>
+</body>
+</html>
