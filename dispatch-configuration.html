@@ -1,0 +1,708 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dispatch Configuration — Schema &amp; API | FieldJetX</title>
+<style>
+  :root{
+    --bg:#f5f6f8; --panel:#ffffff; --ink:#111111; --ink-soft:#25283a; --muted:#4b5363;
+    --line:#dfe3e8; --line-strong:#bac4cb; --blue:#0255a5; --blue-soft:#eaf2fb;
+    --amber:#d6ba17; --red:#e02222; --green:#02a570; --green-soft:#eefaf3;
+    --warn-bg:#fff8e6; --warn-line:#e8cf7a; --code-bg:#f3f5f7;
+    --radius:12px;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; background:var(--bg); color:var(--ink);
+    font:15px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:32px 24px 80px}
+  header.page{border-bottom:2px solid var(--line-strong);padding-bottom:22px;margin-bottom:8px}
+  header.page h1{margin:0 0 6px;font-size:30px;font-weight:800;letter-spacing:-.3px}
+  header.page p.sub{margin:0;color:var(--muted);font-size:15px}
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-top:16px}
+  .chip{background:var(--panel);border:1px solid var(--line-strong);border-radius:999px;
+        padding:4px 12px;font-size:12px;color:var(--muted)}
+  .chip strong{color:var(--ink);font-weight:600}
+
+  nav.toc{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);
+          padding:16px 20px;margin:28px 0 36px}
+  nav.toc h2{margin:0 0 10px;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--muted)}
+  nav.toc ol{margin:0;padding-left:20px;columns:2;column-gap:32px}
+  nav.toc li{margin:3px 0}
+  nav.toc a{color:var(--blue);text-decoration:none}
+  nav.toc a:hover{text-decoration:underline}
+
+  section{margin:0 0 44px}
+  h2.sec{font-size:21px;font-weight:800;margin:0 0 6px;padding-top:8px}
+  h2.sec .n{color:var(--blue);margin-right:8px}
+  h3{font-size:16px;font-weight:700;margin:26px 0 8px}
+  p{margin:10px 0}
+  .lede{color:var(--muted)}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px}
+  .scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  table{border-collapse:collapse;width:100%;font-size:14px;min-width:640px}
+  th,td{text-align:left;padding:9px 12px;border-bottom:1px solid var(--line);vertical-align:top}
+  th{background:#eef1f4;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--muted);font-weight:700;
+     border-bottom:1px solid var(--line-strong)}
+  tbody tr:last-child td{border-bottom:none}
+  td.f{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:var(--ink-soft);white-space:nowrap}
+  td.t{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;color:var(--muted);white-space:nowrap}
+  .key{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.05em;padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:1px}
+  .pk{background:#fdf1cf;color:#7a5c00;border:1px solid #e8cf7a}
+  .fk{background:var(--blue-soft);color:var(--blue);border:1px solid #b9d4ee}
+
+  pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;
+      overflow-x:auto;font-size:13px;line-height:1.55;margin:12px 0}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  p code,li code,td code{background:var(--code-bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:13px}
+
+  .callout{border-left:4px solid var(--blue);background:var(--blue-soft);border-radius:0 10px 10px 0;padding:14px 18px;margin:16px 0}
+  .callout.warn{border-left-color:#d6a419;background:var(--warn-bg)}
+  .callout.good{border-left-color:var(--green);background:var(--green-soft)}
+  .callout p{margin:6px 0}
+  .callout strong{color:var(--ink)}
+
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+
+  .ep{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 4px}
+  .verb{font-family:ui-monospace,monospace;font-size:12px;font-weight:700;padding:3px 9px;border-radius:6px;color:#fff}
+  .verb.get{background:#1c7c4a}.verb.put{background:#b26a00}
+  .path{font-family:ui-monospace,monospace;font-size:13.5px;color:var(--ink-soft);word-break:break-all}
+
+  /* screen replica */
+  .mock{background:#edeeee;border:1px solid var(--line-strong);border-radius:var(--radius);padding:16px}
+  .mock-top{display:flex;align-items:flex-start;gap:16px;margin-bottom:12px;position:relative;min-height:44px}
+  .mock-region{background:#fff;border:1px solid var(--line-strong);border-radius:9px;padding:7px 11px;display:flex;gap:9px;align-items:center;z-index:1}
+  .mock-region .lbl{font-size:10px;font-weight:700;letter-spacing:.07em;color:var(--muted)}
+  .mock-region .val{font-size:12.5px;border:1px solid var(--line-strong);border-radius:4px;padding:3px 22px 3px 8px;background:#fff}
+  .mock-title{position:absolute;left:0;right:0;text-align:center;pointer-events:none}
+  .mock-title b{display:block;font-size:17px;font-weight:800}
+  .mock-title span{font-size:11.5px;color:var(--muted)}
+  .mock-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:10px}
+  .mock-card{background:#fff;border:1px solid var(--line-strong);border-radius:10px;padding:12px 14px}
+  .mock-card .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
+  .mock-card .hd b{font-size:12.5px}
+  .mock-card .hd .big{font-size:17px;font-weight:800;white-space:nowrap}
+  .mock-card .hd small{font-size:11px;color:var(--muted);display:block;margin-top:2px;font-weight:400}
+  .track{height:4px;border-radius:99px;background:#dfe3e8;margin:12px 0 5px;position:relative}
+  .track i{position:absolute;left:0;top:0;bottom:0;background:var(--blue);border-radius:99px}
+  .track b{position:absolute;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border:2px solid var(--blue);
+           background:#fff;border-radius:50%}
+  .scale{display:flex;justify-content:space-between;font-size:9.5px;color:var(--muted)}
+  .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:0}
+  .badge{font-size:9px;font-weight:700;letter-spacing:.07em;padding:2px 7px;border-radius:99px;
+         background:#d7dfe5;color:var(--muted);border:1px solid var(--line-strong)}
+  .badge.g{background:rgba(2,165,112,.12);color:var(--green);border-color:rgba(2,165,112,.35)}
+  .opt{border:1px solid var(--line-strong);border-radius:8px;padding:8px 10px;margin-top:7px;font-size:11.5px}
+  .opt.sel{border-color:var(--blue);background:rgba(2,85,165,.09)}
+  .opt.lock{border-color:rgba(2,165,112,.35);background:rgba(2,165,112,.08);display:flex;justify-content:space-between;align-items:center}
+  .opt b{display:block;font-size:12px}
+  .opt span{color:var(--muted);font-size:11px}
+  .seclbl{font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:12px 0 2px}
+
+  svg.er{display:block;width:100%;height:auto;max-width:100%}
+  .er-legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;font-size:12.5px;color:var(--muted)}
+  .er-legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+  figure.shot{margin:14px 0 22px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px}
+  figure.shot img{display:block;width:100%;height:auto;border:1px solid var(--line-strong);border-radius:8px}
+  figure.shot figcaption{margin-top:10px;font-size:13px;color:var(--muted);line-height:1.6}
+  figure.shot figcaption code{font-size:12px}
+
+  ul.tight{margin:8px 0;padding-left:20px}
+  ul.tight li{margin:5px 0}
+  footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line-strong);color:var(--muted);font-size:13px}
+  a{color:var(--blue)}
+  @media (max-width:640px){ nav.toc ol{columns:1} .wrap{padding:20px 14px 60px} }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="page">
+  <h1>Dispatch Configuration — Schema &amp; API</h1>
+  <p class="sub">Use Case A · FieldJetX · two new tables, two endpoints, one screen</p>
+  <div class="meta">
+    <span class="chip">Author <strong>Saravana Rajan</strong></span>
+    <span class="chip">Updated <strong>5 Aug 2026</strong></span>
+    <span class="chip">Built &amp; tested <strong>locally</strong></span>
+    <span class="chip">DEV / QA / STG <strong>pending DBA</strong></span>
+  </div>
+</header>
+
+<nav class="toc">
+  <h2>Contents</h2>
+  <ol>
+    <li><a href="#what">What this screen does</a></li>
+    <li><a href="#screen">The screen</a></li>
+    <li><a href="#er">ER diagram</a></li>
+    <li><a href="#t1">Table 1 — DispatchAutoConfig</a></li>
+    <li><a href="#t2">Table 2 — DispatchAutoConfigPriority</a></li>
+    <li><a href="#mapping">How data becomes the screen</a></li>
+    <li><a href="#api">API &amp; responses</a></li>
+    <li><a href="#live">Live data — proof it works</a></li>
+    <li><a href="#decisions">Design decisions</a></li>
+    <li><a href="#findings">Findings needing a decision</a></li>
+    <li><a href="#migration">Migration &amp; status</a></li>
+  </ol>
+</nav>
+
+<!-- 1 -->
+<section id="what">
+  <h2 class="sec"><span class="n">1</span>What this screen does</h2>
+  <p class="lede">
+    FieldJetX auto-assigns incoming service calls to technicians. Which technician "wins" depends on
+    two things: how urgent the job is, and what that region cares about — arriving fastest, or sending
+    someone who already knows the site.
+  </p>
+  <p>
+    This screen lets a dispatcher tune that behaviour <strong>per on-call region</strong>. For each
+    region it sets two response timers, and for each dispatch type it sets the scoring strategy used
+    to rank technicians.
+  </p>
+  <div class="card">
+    <table>
+      <thead><tr><th>Setting</th><th>What it controls</th></tr></thead>
+      <tbody>
+        <tr><td class="f">Accept / reject window</td><td>Seconds a technician has to accept an offered job before the engine moves to the next candidate</td></tr>
+        <tr><td class="f">ETA request window</td><td>Seconds a technician has to reply with an arrival estimate</td></tr>
+        <tr><td class="f">Scoring strategy</td><td>Per dispatch type: rank by speed, by site familiarity, or a weighted blend of the two</td></tr>
+        <tr><td class="f">Weight balance</td><td>When the strategy is Combined, the split between speed and familiarity</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 2 -->
+<section id="screen">
+  <h2 class="sec"><span class="n">2</span>The screen</h2>
+  <p class="lede">Simplified replica of <code>/systemConfig/dispatch-config</code>. Every value shown comes from the database.</p>
+
+  <div class="mock">
+    <div class="mock-top">
+      <div class="mock-region"><span class="lbl">REGION</span><span class="val">Albuquerque, NM ⌄</span></div>
+      <div class="mock-title"><b>Dispatch Configuration</b><span>Set the scoring strategy for each dispatch type per on-call region</span></div>
+    </div>
+
+    <div class="mock-row">
+      <div class="mock-card">
+        <div class="hd"><div><b>Accept / reject window</b><small>Time a technician has to accept an offered job</small></div><div class="big">41<span style="font-size:11px">s</span></div></div>
+        <div class="track"><i style="width:28%"></i><b style="left:28%"></b></div>
+        <div class="scale"><span>10s</span><span>120s</span></div>
+      </div>
+      <div class="mock-card">
+        <div class="hd"><div><b>ETA request window</b><small>Time allowed to respond with an arrival estimate</small></div><div class="big">30<span style="font-size:11px">s</span></div></div>
+        <div class="track"><i style="width:18%"></i><b style="left:18%"></b></div>
+        <div class="scale"><span>10s</span><span>120s</span></div>
+      </div>
+    </div>
+
+    <div class="mock-row">
+      <div class="mock-card">
+        <div class="hd"><b><span class="dot" style="background:var(--amber)"></span>Emergency</b><span class="badge">LOCKED</span></div>
+        <small style="color:var(--muted);font-size:11px">Critical, time-sensitive orders</small>
+        <div class="opt lock"><span><b>Speed-based</b><span>Availability + travel time</span></span><span class="badge g">LOCKED</span></div>
+        <div class="seclbl">How it scores</div>
+        <div class="opt"><b>01&nbsp; Availability</b><span>How soon they're free for a new job</span></div>
+        <div class="opt"><b>02&nbsp; Travel time</b><span>Drive time to this job site</span></div>
+      </div>
+
+      <div class="mock-card">
+        <div class="hd"><b><span class="dot" style="background:var(--red)"></span>High</b></div>
+        <small style="color:var(--muted);font-size:11px">Priority jobs needing prompt attention</small>
+        <div class="seclbl">Scoring strategy</div>
+        <div class="opt"><b>Speed-based</b><span>Fastest available tech</span></div>
+        <div class="opt sel"><b>◉ Combined</b><span>Weighted blend of speed and familiarity</span></div>
+        <div class="opt" style="background:#fafbfc">
+          <div class="seclbl" style="margin-top:0">Weight balance</div>
+          <div style="display:flex;justify-content:space-between">
+            <span><b style="color:var(--blue);font-size:16px">50%</b><span>SPEED</span></span>
+            <span style="text-align:right"><b style="color:var(--ink-soft);font-size:16px">50%</b><span>FAMILIARITY</span></span>
+          </div>
+          <div class="track" style="margin-bottom:2px"><i style="width:50%"></i><b style="left:50%"></b></div>
+        </div>
+      </div>
+
+      <div class="mock-card">
+        <div class="hd"><b><span class="dot" style="background:var(--blue)"></span>Normal</b></div>
+        <small style="color:var(--muted);font-size:11px">Standard, routine service requests</small>
+        <div class="seclbl">Scoring strategy</div>
+        <div class="opt sel"><b>◉ Familiarity-based</b><span>Most familiar with the customer site</span></div>
+        <div class="opt"><b>Combined</b><span>Weighted blend</span></div>
+        <div class="seclbl">How it scores</div>
+        <div class="opt"><b>01&nbsp; Visit history</b><span>How many times they've worked at this location</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="callout">
+    <p><strong>One child row = one column.</strong> The three columns are not hardcoded — the screen renders one
+    column per eligible <code>dbo.Priority</code> row. Add a fourth eligible priority and a fourth column appears
+    with no code change.</p>
+  </div>
+</section>
+
+<!-- 3 -->
+<section id="er">
+  <h2 class="sec"><span class="n">3</span>ER diagram</h2>
+  <p class="lede">Blue boxes are new. Grey boxes already exist in FieldJetX and are only read from.</p>
+
+  <div class="card scroll">
+    <svg class="er" viewBox="0 0 960 660" role="img" aria-label="Entity relationship diagram">
+      <defs>
+        <marker id="crow" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
+          <path d="M2,7 L12,2 M2,7 L12,7 M2,7 L12,12" stroke="#4b5363" stroke-width="1.4" fill="none"/>
+        </marker>
+        <marker id="one" markerWidth="14" markerHeight="14" refX="2" refY="7" orient="auto">
+          <path d="M6,2 L6,12" stroke="#4b5363" stroke-width="1.6"/>
+        </marker>
+      </defs>
+
+      <!-- existing: OnCallRegion -->
+      <rect x="30" y="30" width="270" height="104" rx="10" fill="#eef1f4" stroke="#bac4cb" stroke-width="1.5"/>
+      <rect x="30" y="30" width="270" height="30" rx="10" fill="#dfe4e9" stroke="#bac4cb" stroke-width="1.5"/>
+      <rect x="30" y="52" width="270" height="8" fill="#dfe4e9"/>
+      <text x="44" y="50" font-size="13.5" font-weight="700" fill="#25283a">dbo.OnCallRegion</text>
+      <text x="268" y="50" font-size="10" fill="#4b5363" text-anchor="end">existing</text>
+      <text x="44" y="80" font-size="12" font-family="monospace" fill="#111">OnCallRegionId</text>
+      <text x="186" y="80" font-size="9.5" font-weight="700" fill="#7a5c00">PK</text>
+      <text x="44" y="100" font-size="12" font-family="monospace" fill="#4b5363">OnCallRegionName</text>
+      <text x="44" y="120" font-size="12" font-family="monospace" fill="#4b5363">IsActive</text>
+
+      <!-- existing: Priority -->
+      <rect x="660" y="30" width="270" height="144" rx="10" fill="#eef1f4" stroke="#bac4cb" stroke-width="1.5"/>
+      <rect x="660" y="30" width="270" height="30" rx="10" fill="#dfe4e9" stroke="#bac4cb" stroke-width="1.5"/>
+      <rect x="660" y="52" width="270" height="8" fill="#dfe4e9"/>
+      <text x="674" y="50" font-size="13.5" font-weight="700" fill="#25283a">dbo.Priority</text>
+      <text x="898" y="50" font-size="10" fill="#4b5363" text-anchor="end">existing</text>
+      <text x="674" y="80" font-size="12" font-family="monospace" fill="#111">PriorityId</text>
+      <text x="770" y="80" font-size="9.5" font-weight="700" fill="#7a5c00">PK</text>
+      <text x="674" y="100" font-size="12" font-family="monospace" fill="#4b5363">CompanyId</text>
+      <text x="674" y="120" font-size="12" font-family="monospace" fill="#4b5363">PriorityName</text>
+      <text x="674" y="140" font-size="12" font-family="monospace" fill="#4b5363">PriorityDesc</text>
+      <text x="674" y="160" font-size="12" font-family="monospace" fill="#4b5363">Color</text>
+
+      <!-- new: DispatchAutoConfig -->
+      <rect x="30" y="270" width="340" height="286" rx="10" fill="#ffffff" stroke="#0255a5" stroke-width="2"/>
+      <rect x="30" y="270" width="340" height="32" rx="10" fill="#eaf2fb" stroke="#0255a5" stroke-width="2"/>
+      <rect x="31" y="292" width="338" height="10" fill="#eaf2fb"/>
+      <text x="44" y="291" font-size="13.5" font-weight="800" fill="#0255a5">DispatchAutoConfig</text>
+      <text x="356" y="291" font-size="10" fill="#0255a5" text-anchor="end">NEW</text>
+      <text x="44" y="324" font-size="12" font-family="monospace" fill="#111">DispatchAutoConfigId</text>
+      <text x="230" y="324" font-size="9.5" font-weight="700" fill="#7a5c00">PK</text>
+      <text x="44" y="346" font-size="12" font-family="monospace" fill="#111">CompanyId</text>
+      <text x="44" y="368" font-size="12" font-family="monospace" fill="#111">ScopeTypeId</text>
+      <text x="44" y="390" font-size="12" font-family="monospace" fill="#111">OnCallRegionId</text>
+      <text x="188" y="390" font-size="9.5" font-weight="700" fill="#0255a5">FK</text>
+      <text x="44" y="412" font-size="12" font-family="monospace" fill="#111">AcceptRejectWindowSeconds</text>
+      <text x="44" y="434" font-size="12" font-family="monospace" fill="#111">EtaRequestWindowSeconds</text>
+      <line x1="44" y1="448" x2="356" y2="448" stroke="#dfe3e8" stroke-width="1"/>
+      <text x="44" y="470" font-size="11.5" font-family="monospace" fill="#4b5363">IsActive</text>
+      <text x="44" y="490" font-size="11.5" font-family="monospace" fill="#4b5363">InsertDt · InsertUserId</text>
+      <text x="44" y="510" font-size="11.5" font-family="monospace" fill="#4b5363">UpdateDt · UpdateUserId</text>
+      <text x="44" y="534" font-size="10.5" fill="#4b5363" font-style="italic">one row per on-call region</text>
+
+      <!-- new: DispatchAutoConfigPriority -->
+      <rect x="590" y="270" width="340" height="286" rx="10" fill="#ffffff" stroke="#0255a5" stroke-width="2"/>
+      <rect x="590" y="270" width="340" height="32" rx="10" fill="#eaf2fb" stroke="#0255a5" stroke-width="2"/>
+      <rect x="591" y="292" width="338" height="10" fill="#eaf2fb"/>
+      <text x="604" y="291" font-size="13.5" font-weight="800" fill="#0255a5">DispatchAutoConfigPriority</text>
+      <text x="916" y="291" font-size="10" fill="#0255a5" text-anchor="end">NEW</text>
+      <text x="604" y="324" font-size="11.5" font-family="monospace" fill="#111">DispatchAutoConfigPriorityId</text>
+      <text x="856" y="324" font-size="9.5" font-weight="700" fill="#7a5c00">PK</text>
+      <text x="604" y="346" font-size="12" font-family="monospace" fill="#111">DispatchAutoConfigId</text>
+      <text x="790" y="346" font-size="9.5" font-weight="700" fill="#0255a5">FK</text>
+      <text x="604" y="368" font-size="12" font-family="monospace" fill="#111">PriorityId</text>
+      <text x="700" y="368" font-size="9.5" font-weight="700" fill="#0255a5">FK</text>
+      <text x="604" y="390" font-size="12" font-family="monospace" fill="#111">ScoringStrategyId</text>
+      <text x="604" y="412" font-size="12" font-family="monospace" fill="#111">SpeedWeightPct</text>
+      <text x="604" y="434" font-size="12" font-family="monospace" fill="#111">IsLocked</text>
+      <line x1="604" y1="448" x2="916" y2="448" stroke="#dfe3e8" stroke-width="1"/>
+      <text x="604" y="470" font-size="11.5" font-family="monospace" fill="#4b5363">IsActive</text>
+      <text x="604" y="490" font-size="11.5" font-family="monospace" fill="#4b5363">InsertDt · InsertUserId</text>
+      <text x="604" y="510" font-size="11.5" font-family="monospace" fill="#4b5363">UpdateDt · UpdateUserId</text>
+      <text x="604" y="534" font-size="10.5" fill="#4b5363" font-style="italic">one row per dispatch type = one column on screen</text>
+
+      <!-- relationships -->
+      <path d="M165,134 L165,270" stroke="#4b5363" stroke-width="1.6" fill="none" marker-start="url(#one)" marker-end="url(#crow)"/>
+      <rect x="176" y="185" width="128" height="34" rx="6" fill="#ffffff" stroke="#dfe3e8"/>
+      <text x="186" y="199" font-size="10.5" fill="#4b5363">1 region has</text>
+      <text x="186" y="212" font-size="10.5" fill="#4b5363">0..1 config</text>
+
+      <path d="M795,174 L795,270" stroke="#4b5363" stroke-width="1.6" fill="none" marker-start="url(#one)" marker-end="url(#crow)"/>
+      <rect x="806" y="200" width="124" height="34" rx="6" fill="#ffffff" stroke="#dfe3e8"/>
+      <text x="816" y="214" font-size="10.5" fill="#4b5363">1 priority has</text>
+      <text x="816" y="227" font-size="10.5" fill="#4b5363">many rows</text>
+
+      <path d="M370,400 L590,400" stroke="#0255a5" stroke-width="2" fill="none" marker-start="url(#one)" marker-end="url(#crow)"/>
+      <rect x="404" y="358" width="152" height="34" rx="6" fill="#eaf2fb" stroke="#b9d4ee"/>
+      <text x="414" y="372" font-size="10.5" fill="#0255a5">1 config has 3 rows</text>
+      <text x="414" y="385" font-size="10.5" fill="#0255a5">ON DELETE CASCADE</text>
+
+      <text x="480" y="620" font-size="11" fill="#4b5363" text-anchor="middle">
+        UNIQUE (CompanyId, OnCallRegionId) · UNIQUE (DispatchAutoConfigId, PriorityId)
+      </text>
+    </svg>
+
+    <div class="er-legend">
+      <span><i style="background:#fff;border:2px solid #0255a5"></i>New table</span>
+      <span><i style="background:#eef1f4;border:1px solid #bac4cb"></i>Existing FieldJetX table (read only)</span>
+      <span><span class="key pk">PK</span> primary key</span>
+      <span><span class="key fk">FK</span> foreign key</span>
+    </div>
+  </div>
+</section>
+
+<!-- 4 -->
+<section id="t1">
+  <h2 class="sec"><span class="n">4</span>Table 1 — <code>dbo.DispatchAutoConfig</code></h2>
+  <p class="lede">One row per on-call region. Holds the two timers.</p>
+  <div class="card scroll">
+    <table>
+      <thead><tr><th style="width:26%">Field</th><th style="width:17%">Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td class="f">DispatchAutoConfigId <span class="key pk">PK</span></td><td class="t">uniqueidentifier</td>
+            <td>Unique id of the row. Auto-generated. The child table points back at this.</td></tr>
+        <tr><td class="f">CompanyId</td><td class="t">uniqueidentifier</td>
+            <td>Which tenant this belongs to (ClimatePros vs Zuggit). <strong>Required</strong> because <code>OnCallRegion</code> has no CompanyId of its own — without it the two brands would collide. Set from the logged-in session, never from the browser.</td></tr>
+        <tr><td class="f">ScopeTypeId</td><td class="t">tinyint</td>
+            <td>What kind of thing this config attaches to. <code>1</code>=On-Call Region, <code>2</code>=Division, <code>3</code>=Region, <code>4</code>=Company-wide. Always <code>1</code> today — a placeholder so the scope can change later without a rebuild.</td></tr>
+        <tr><td class="f">OnCallRegionId <span class="key fk">FK</span></td><td class="t">uniqueidentifier</td>
+            <td>Which region. Foreign key to the existing <code>dbo.OnCallRegion</code>. This is what the REGION dropdown selects.</td></tr>
+        <tr><td class="f">AcceptRejectWindowSeconds</td><td class="t">int</td>
+            <td><strong>The left slider.</strong> Seconds a technician has to accept an offered job before the engine moves on. Default 30, range 10–120.</td></tr>
+        <tr><td class="f">EtaRequestWindowSeconds</td><td class="t">int</td>
+            <td><strong>The right slider.</strong> Seconds a technician has to reply with an arrival estimate. Default 30, range 10–120.</td></tr>
+        <tr><td class="f">IsActive</td><td class="t">bit</td>
+            <td>Soft delete — switch a region's config off without deleting the row. FieldJetX convention (95 other tables do this).</td></tr>
+        <tr><td class="f">InsertDt</td><td class="t">datetime</td><td>When the row was created.</td></tr>
+        <tr><td class="f">InsertUserId</td><td class="t">uniqueidentifier</td><td>Who created it.</td></tr>
+        <tr><td class="f">UpdateDt</td><td class="t">datetime</td><td>When it was last changed.</td></tr>
+        <tr><td class="f">UpdateUserId</td><td class="t">uniqueidentifier</td>
+            <td><strong>Who last changed it.</strong> Matters here — scoring changes affect which technicians get work, so there is an audit trail.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p><strong>Unique index</strong> <code>(CompanyId, OnCallRegionId)</code> — one configuration per region per company, so you cannot accidentally create two for the same region.</p>
+</section>
+
+<!-- 5 -->
+<section id="t2">
+  <h2 class="sec"><span class="n">5</span>Table 2 — <code>dbo.DispatchAutoConfigPriority</code></h2>
+  <p class="lede">One row per dispatch type within a region. Three rows today = the three columns on screen.</p>
+  <div class="card scroll">
+    <table>
+      <thead><tr><th style="width:26%">Field</th><th style="width:17%">Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td class="f">DispatchAutoConfigPriorityId <span class="key pk">PK</span></td><td class="t">uniqueidentifier</td>
+            <td>Unique id of this child row.</td></tr>
+        <tr><td class="f">DispatchAutoConfigId <span class="key fk">FK</span></td><td class="t">uniqueidentifier</td>
+            <td><strong>Which region's config this belongs to.</strong> The link that keeps Albuquerque's settings separate from Boston's. <code>ON DELETE CASCADE</code> — delete a config and its children clean themselves up.</td></tr>
+        <tr><td class="f">PriorityId <span class="key fk">FK</span></td><td class="t">uniqueidentifier</td>
+            <td><strong>Which dispatch type.</strong> Foreign key to existing <code>dbo.Priority</code>. Column heading, coloured dot and subtitle all come from there, so nothing is duplicated.</td></tr>
+        <tr><td class="f">ScoringStrategyId</td><td class="t">tinyint</td>
+            <td><strong>Which radio button is selected.</strong> <code>1</code>=Speed-based, <code>2</code>=Familiarity-based, <code>3</code>=Combined. One number replaces the whole radio group. Also decides whether the Weight Balance slider appears — only <code>3</code> shows it.</td></tr>
+        <tr><td class="f">SpeedWeightPct</td><td class="t">tinyint</td>
+            <td><strong>The Weight Balance slider,</strong> 0–100. <code>70</code> means 70% speed / 30% familiarity. Familiarity is always <code>100 − this</code>, so there is no second column that could drift out of sync. Only meaningful when the strategy is Combined.</td></tr>
+        <tr><td class="f">IsLocked</td><td class="t">bit</td>
+            <td><strong>Marks a column read-only</strong> (Emergency). Sent to the UI so it disables the radios — <em>and</em> the save skips locked rows, so a hand-crafted HTTP request still cannot change it. Stored as data rather than a hardcoded name check, because priority names differ per company.</td></tr>
+        <tr><td class="f">IsActive</td><td class="t">bit</td><td>Soft delete, same as the parent.</td></tr>
+        <tr><td class="f">InsertDt · InsertUserId<br>UpdateDt · UpdateUserId</td><td class="t">datetime<br>uniqueidentifier</td>
+            <td>Same audit set as the parent.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    <strong>Unique constraint</strong> <code>(DispatchAutoConfigId, PriorityId)</code> — a region cannot have two rows for the same dispatch type.<br>
+    <strong>Check constraints</strong> <code>SpeedWeightPct BETWEEN 0 AND 100</code> and <code>ScoringStrategyId IN (1,2,3)</code> — the database rejects nonsense even if the application has a bug.
+  </p>
+</section>
+
+<!-- 6 -->
+<section id="mapping">
+  <h2 class="sec"><span class="n">6</span>How data becomes the screen</h2>
+  <div class="card">
+<pre><code>  DispatchAutoConfig
+  ├ OnCallRegionId  ───────────────────►  REGION [ Albuquerque, NM ▾ ]
+  ├ AcceptRejectWindowSeconds  41  ────►  Accept / reject  [──●────] 41s
+  └ EtaRequestWindowSeconds    30  ────►  ETA request      [──●────] 30s
+                                          ┌───────────┬───────────┬───────────┐
+  DispatchAutoConfigPriority ⨝ Priority   │ EMERGENCY │   HIGH    │  NORMAL   │
+  ─────────────────────────────────────   │           │           │           │
+  row 1  Priority.PriorityName ─────────► │ heading   │           │           │
+         Priority.Color ────────────────► │ 🟡 dot    │           │           │
+         Priority.PriorityDesc ─────────► │ subtitle  │           │           │
+         IsLocked = 1 ──────────────────► │ [LOCKED]  │           │           │
+         ScoringStrategyId = 1 ─────────► │ ● Speed   │           │           │
+                                          │           │           │           │
+  row 2  ScoringStrategyId = 3 ───────────┼───────────┼● Combined │           │
+         SpeedWeightPct = 50 ─────────────┼───────────┼ 50% / 50% │           │
+                                          │           │           │           │
+  row 3  ScoringStrategyId = 2 ───────────┴───────────┴───────────┼● Familiar.│
+                                                                  └───────────┘</code></pre>
+  </div>
+  <div class="callout good">
+    <p><strong>Nothing about the columns is hardcoded.</strong> Headings, colours and subtitles all come from
+    <code>dbo.Priority</code>, so the screen is correct for any tenant — including Zuggit, whose priority list differs.</p>
+  </div>
+</section>
+
+<!-- 7 -->
+<section id="api">
+  <h2 class="sec"><span class="n">7</span>API &amp; responses</h2>
+  <p class="lede">Two endpoints. Both return <code>BaseInfo</code> (the FieldJetX standard envelope) and both are secured by default via <code>AppControllerBase</code>.</p>
+
+  <h3>Load the screen</h3>
+  <div class="card">
+    <div class="ep"><span class="verb get">GET</span><span class="path">/api/DispatchConfig/GetConfig?scopeId={guid}&amp;scopeTypeId=1</span></div>
+    <p style="font-size:13.5px;color:var(--muted);margin:6px 0 0">Called when the page opens and whenever the region changes. Returns defaults (30 / 30 / Combined) if the region has never been configured.</p>
+<pre><code>{
+  "primaryReturn": {
+    "scopeTypeId": 1,
+    "scopeId":   "F1E98E3D-9740-4BC7-A223-B54349D04C23",
+    "scopeName": "Albuquerque, NM",          <span style="color:#4b5363">// dropdown label + footer sentence</span>
+    "acceptRejectWindowSeconds": 41,         <span style="color:#4b5363">// left slider</span>
+    "etaRequestWindowSeconds":   30,         <span style="color:#4b5363">// right slider</span>
+
+    "priorities": [                          <span style="color:#4b5363">// ONE ENTRY = ONE COLUMN</span>
+      {
+        "priorityId":        "3FE257A3-...",
+        "priorityName":      "Emergency",                    <span style="color:#4b5363">// column heading</span>
+        "priorityDesc":      "Critical, time-sensitive orders",
+        "color":             14072855,                       <span style="color:#4b5363">// the coloured dot</span>
+        "scoringStrategyId": 1,                              <span style="color:#4b5363">// which radio is filled</span>
+        "speedWeightPct":    100,
+        "isLocked":          true                            <span style="color:#4b5363">// draw LOCKED, disable radios</span>
+      },
+      { "priorityId": "8DF31E86-...", "priorityName": "High",
+        "scoringStrategyId": 3, "speedWeightPct": 50, "isLocked": false },
+      { "priorityId": "F76D9D14-...", "priorityName": "Normal",
+        "scoringStrategyId": 2, "speedWeightPct": 50, "isLocked": false }
+    ]
+  },
+  "saveError": false,
+  "message":   ""
+}</code></pre>
+  </div>
+
+  <h3>Save the screen</h3>
+  <div class="card">
+    <div class="ep"><span class="verb put">PUT</span><span class="path">/api/DispatchConfig/SaveConfig</span></div>
+    <p style="font-size:13.5px;color:var(--muted);margin:6px 0 0">Called only when the user clicks <em>Save configuration</em>. Dragging a slider is pure browser state until then.</p>
+<pre><code>{
+  "scopeTypeId": 1,
+  "scopeId":     "F1E98E3D-9740-4BC7-A223-B54349D04C23",
+  "acceptRejectWindowSeconds": 41,
+  "etaRequestWindowSeconds":   30,
+  "priorities": [
+    { "priorityId": "8DF31E86-...", "scoringStrategyId": 3, "speedWeightPct": 50 },
+    { "priorityId": "F76D9D14-...", "scoringStrategyId": 2, "speedWeightPct": 50 }
+  ]
+}</code></pre>
+    <p><strong>Success</strong> → <code>saveError: false</code>, and <code>primaryReturn</code> is the re-read configuration so the screen reflects exactly what was stored.</p>
+  </div>
+
+  <div class="callout">
+    <p><strong>Two things deliberately absent from the request:</strong> <code>companyId</code> and <code>userId</code>.
+    Both are derived server side from <code>_userContext.BuildAppValidationCheck()</code>. If the browser sent
+    <code>companyId</code>, anyone could open dev tools, swap in Zuggit's GUID and overwrite their configuration.</p>
+    <p><strong>Emergency is also absent</strong> — it cannot be edited, so there is nothing to send. And even if a
+    crafted client sent it, the save skips rows where <code>IsLocked = 1</code>.</p>
+  </div>
+
+  <h3>Validation (server side)</h3>
+  <div class="card scroll">
+    <table>
+      <thead><tr><th>Condition</th><th>Message returned</th></tr></thead>
+      <tbody>
+        <tr><td>Timer outside 10–120s</td><td>Accept/reject window must be between 10 and 120 seconds.</td></tr>
+        <tr><td><code>scoringStrategyId</code> not 1, 2 or 3</td><td>Unknown scoring strategy.</td></tr>
+        <tr><td><code>speedWeightPct</code> above 100</td><td>Weight must be between 0 and 100.</td></tr>
+        <tr><td>No region selected</td><td>A region must be selected.</td></tr>
+        <tr><td>Unknown scope type</td><td>Unknown configuration scope.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 7b -->
+<section id="live">
+  <h2 class="sec"><span class="n">8</span>Live data — proof it works</h2>
+  <p class="lede">
+    Screenshots from DBeaver against the local database, after saving from the screen. The
+    Accept/reject slider was moved to <strong>41s</strong> and saved; these are the rows that landed.
+  </p>
+
+  <h3><code>DispatchAutoConfig</code> — the parent row</h3>
+  <figure class="shot">
+    <img src="assets/db-dispatchautoconfig.png" alt="DispatchAutoConfig row showing scope and timer values">
+    <figcaption>
+      <code>ScopeTypeId = 1</code> (on-call region) · <code>OnCallRegionId = F1E98E3D…</code> (Albuquerque, NM) ·
+      <code>AcceptRejectWindowSeconds = 41</code> · <code>EtaRequestWindowSeconds = 30</code>
+    </figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="assets/db-dispatchautoconfig-audit.png" alt="DispatchAutoConfig audit columns">
+    <figcaption>
+      Audit columns. <code>InsertUserId</code> and <code>UpdateUserId</code> are <code>9E12E8CB…</code> — the
+      signed-in user, resolved <strong>server side</strong>. The browser never sent it, which is what stops a
+      client writing to another tenant.
+    </figcaption>
+  </figure>
+
+  <h3><code>DispatchAutoConfigPriority</code> — the child rows</h3>
+  <figure class="shot">
+    <img src="assets/db-dispatchautoconfigpriority.png" alt="DispatchAutoConfigPriority rows">
+    <figcaption>
+      Two rows, both pointing at parent <code>2821EBFB…</code>. <code>8DF31E86…</code> is <em>High</em> and
+      <code>F76D9D14…</code> is <em>Normal</em>, each <code>ScoringStrategyId = 3</code> (Combined) at
+      <code>SpeedWeightPct = 50</code>.
+    </figcaption>
+  </figure>
+  <figure class="shot">
+    <img src="assets/db-dispatchautoconfigpriority-audit.png" alt="DispatchAutoConfigPriority audit columns">
+    <figcaption>Same audit set on the child rows.</figcaption>
+  </figure>
+
+  <div class="callout good">
+    <p><strong>Note what is <em>not</em> there: a third row.</strong> Emergency has no child row, because it is
+    locked. The screen doesn't send it and the save skips rows where <code>IsLocked = 1</code> — so it cannot be
+    changed even by a hand-crafted HTTP request, not just by a disabled radio button.</p>
+  </div>
+</section>
+
+<!-- 8 -->
+<section id="decisions">
+  <h2 class="sec"><span class="n">9</span>Design decisions</h2>
+  <div class="grid2">
+    <div class="card">
+      <h3 style="margin-top:0">Two tables, not one</h3>
+      <p>Two different “per”: two numbers <strong>per region</strong> (the timers) and two numbers
+      <strong>per dispatch type</strong> (strategy + weight). Standard parent/child — the same shape as
+      Order → OrderLines.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">EF, not stored procedures</h3>
+      <p><code>CPData.Repository</code> already calls <code>SaveChangesAsync</code> <strong>329 times</strong>, so
+      this matches existing practice. It also means the only DBA dependency is <code>CREATE TABLE</code> ×2,
+      which unblocks development days earlier.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">One weight column, not two</h3>
+      <p>Familiarity is always <code>100 − SpeedWeightPct</code>. Storing both would mean an invariant to
+      validate and floating-point drift to worry about. The UI already works in whole percentages.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0"><code>IsLocked</code> as data</h3>
+      <p>The obvious version is <code>if (name == "Emergency") disable()</code> — which breaks the moment a
+      company renames it, since <code>PriorityName</code> is per-company text. The server decides; the UI obeys.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0"><code>ScopeTypeId</code> — a hedge</h3>
+      <p>The scope question was still open. v1 always writes <code>1</code> with a real <code>OnCallRegionId</code>.
+      If it becomes Division we write <code>2</code> and add a nullable column — no data migration.</p>
+      <p style="font-size:13px;color:var(--muted)"><strong>Trade-off:</strong> keeping a real FK on
+      <code>OnCallRegionId</code> gives referential integrity but means one <code>ALTER TABLE</code> later. A generic
+      <code>ScopeId</code> avoids that but the database could no longer reject a bogus GUID. We chose integrity.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Deliberately left out</h3>
+      <p>ROWVERSION concurrency, two lookup tables, CHECK constraints on the slider bounds, a
+      fallback-resolution proc. Bounds are validated in the service instead, so changing 120s → 180s doesn't
+      need a DBA ticket. All are cheap to add later; none are cheap to remove once depended on.</p>
+    </div>
+  </div>
+</section>
+
+<!-- 9 -->
+<section id="findings">
+  <h2 class="sec"><span class="n">10</span>Findings needing a decision</h2>
+  <p class="lede">These came out of building against real data and change the design assumptions.</p>
+
+  <div class="callout warn">
+    <p><strong>1 · There is no “Emergency” priority.</strong> <code>dbo.Priority</code> holds <strong>18 rows</strong>
+    for our company and none is called Emergency:</p>
+    <p style="font-family:ui-monospace,monospace;font-size:12.5px;color:var(--ink-soft)">
+      High · Normal · HOT PARTS - ASAP · LOCKED - SCHEDULED · Overtime Approved · PM ·
+      Special Equipment · Warranty (Hot) · Trakyn - (CP) Triage · (P1) Emergency 2hr ·
+      (P2) Today 4hr · (P3) Next day · (P4) Installation · (P6) Scheduled PM · (P8) Parts order ·
+      (PUR) Large parts · (REF) Freon · <em>(one row with a blank name)</em>
+    </p>
+    <p><strong>Interim:</strong> eligible priorities and display names come from configuration, currently mapping
+    <code>Overtime Approved → "Emergency"</code>, plus High and Normal.
+    <strong>Question:</strong> is that the right row, and should the screen show the real name or the relabelled one?</p>
+  </div>
+
+  <div class="callout warn">
+    <p><strong>2 · Every <code>PriorityDesc</code> is NULL.</strong> The grey subtitles in the design don't exist in
+    the data — they are supplied from configuration today. Populating <code>PriorityDesc</code> would be the better
+    fix and would benefit other screens too.</p>
+  </div>
+
+  <div class="callout warn">
+    <p><strong>3 · One priority row has a blank name.</strong> Worth cleaning up — it would render as an unnamed
+    column if it were ever made eligible.</p>
+  </div>
+
+  <div class="callout">
+    <p><strong>Proposed proper fix</strong> — put the rule with the data instead of in appsettings:</p>
+    <pre style="margin:8px 0 0"><code>ALTER TABLE dbo.Priority
+  ADD IsAutoDispatchEligible bit NOT NULL
+      CONSTRAINT DF_Priority_AutoDispatch DEFAULT (0);</code></pre>
+    <p style="margin-top:10px">The screen then filters on that flag. The configuration list is an interim measure so
+    development wasn't blocked.</p>
+  </div>
+</section>
+
+<!-- 10 -->
+<section id="migration">
+  <h2 class="sec"><span class="n">11</span>Migration &amp; status</h2>
+
+  <div class="callout">
+    <p><strong>FieldJetX has no migration framework.</strong> Verified in the codebase:
+    <strong>0</strong> EF migration folders, <strong>0</strong> <code>.sqlproj</code>, <strong>0</strong>
+    <code>.dacpac</code>, <strong>0</strong> <code>CREATE PROCEDURE</code> scripts.</p>
+    <p>The database is the source of truth — <code>fieldgeticsContext</code> (11,394 lines, 544 DbSets) was
+    reverse-engineered <em>from</em> it. So “migration” here means <strong>handing the DBA a SQL script</strong>,
+    not running a tool. Script is ready: <code>DispatchAutoConfig_tables.sql</code>.</p>
+  </div>
+
+  <div class="card scroll">
+    <table>
+      <thead><tr><th style="width:60%">Item</th><th>Status</th></tr></thead>
+      <tbody>
+        <tr><td>Tables created and tested</td><td>✅ local SQL Server (Docker)</td></tr>
+        <tr><td>Entities + <code>fieldgeticsContext</code> registration</td><td>✅</td></tr>
+        <tr><td>Repository / Service / Controller</td><td>✅ builds clean, 0 errors</td></tr>
+        <tr><td>DI registration in <code>Startup.cs</code></td><td>✅</td></tr>
+        <tr><td>Angular screen reading + writing through the API</td><td>✅</td></tr>
+        <tr><td>Save → reload round-trip verified in the database</td><td>✅</td></tr>
+        <tr><td><strong>DEV / QA / STG</strong></td><td><strong>❌ needs DBA to run the DDL</strong></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3>Open questions</h3>
+  <div class="card">
+    <ul class="tight">
+      <li>Is <code>Overtime Approved</code> the right row for Emergency?</li>
+      <li>Should the screen display the real name, or the relabelled “Emergency”?</li>
+      <li>Can we add <code>IsAutoDispatchEligible</code> to <code>dbo.Priority</code>?</li>
+      <li>Can <code>PriorityDesc</code> be populated? All 18 rows are NULL.</li>
+      <li>Who runs the DDL for DEV / QA / STG, and what is the lead time?</li>
+    </ul>
+  </div>
+</section>
+
+<footer>
+  FieldJetX · Use Case A — Dispatch Configuration · prepared by Saravana Rajan ·
+  <a href="index.html">back to index</a>
+</footer>
+
+</div>
+</body>
+</html>
