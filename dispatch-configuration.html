@@ -8,7 +8,7 @@
   :root{
     --bg:#f5f6f8; --panel:#ffffff; --ink:#111111; --ink-soft:#25283a; --muted:#4b5363;
     --line:#dfe3e8; --line-strong:#bac4cb; --blue:#0255a5; --blue-soft:#eaf2fb;
-    --amber:#d6ba17; --red:#e02222; --green:#02a570; --green-soft:#eefaf3;
+    --amber:#d6ba17; --red:#e02222; --orange:#f97031; --green:#02a570; --green-soft:#eefaf3;
     --warn-bg:#fff8e6; --warn-line:#e8cf7a; --code-bg:#f3f5f7;
     --radius:12px;
   }
@@ -51,13 +51,17 @@
   tbody tr:last-child td{border-bottom:none}
   td.f{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:var(--ink-soft);white-space:nowrap}
   td.t{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;color:var(--muted);white-space:nowrap}
+  td.gone{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px;color:var(--ink-soft);
+          white-space:nowrap;text-decoration:line-through;text-decoration-color:#c2483f}
   .key{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.05em;padding:1px 6px;border-radius:4px;margin-left:6px;vertical-align:1px}
   .pk{background:#fdf1cf;color:#7a5c00;border:1px solid #e8cf7a}
   .fk{background:var(--blue-soft);color:var(--blue);border:1px solid #b9d4ee}
+  .uq{background:#eaf7f1;color:#02694a;border:1px solid #a9dcc7}
 
   pre{background:var(--code-bg);border:1px solid var(--line);border-radius:10px;padding:14px 16px;
       overflow-x:auto;font-size:13px;line-height:1.55;margin:12px 0}
-  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
+  code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;overflow-wrap:anywhere}
+  h2.sec code{font-size:.86em}
   p code,li code,td code{background:var(--code-bg);border:1px solid var(--line);border-radius:5px;padding:1px 5px;font-size:13px}
 
   .callout{border-left:4px solid var(--blue);background:var(--blue-soft);border-radius:0 10px 10px 0;padding:14px 18px;margin:16px 0}
@@ -66,7 +70,11 @@
   .callout p{margin:6px 0}
   .callout strong{color:var(--ink)}
 
-  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px}
+  .quote{border-left:3px solid var(--line-strong);margin:14px 0;padding:2px 0 2px 16px;
+         color:var(--ink-soft);font-style:italic}
+  .quote cite{display:block;margin-top:6px;font-style:normal;font-size:12.5px;color:var(--muted)}
+
+  .grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(320px,100%),1fr));gap:16px}
 
   .ep{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin:0 0 4px}
   .verb{font-family:ui-monospace,monospace;font-size:12px;font-weight:700;padding:3px 9px;border-radius:6px;color:#fff}
@@ -75,19 +83,29 @@
 
   /* screen replica */
   .mock{background:#edeeee;border:1px solid var(--line-strong);border-radius:var(--radius);padding:16px}
-  .mock-top{display:flex;align-items:flex-start;gap:16px;margin-bottom:12px;position:relative;min-height:44px}
+  .mock-top{display:flex;align-items:flex-start;gap:16px;margin-bottom:14px;position:relative;min-height:44px}
   .mock-region{background:#fff;border:1px solid var(--line-strong);border-radius:9px;padding:7px 11px;display:flex;gap:9px;align-items:center;z-index:1}
   .mock-region .lbl{font-size:10px;font-weight:700;letter-spacing:.07em;color:var(--muted)}
   .mock-region .val{font-size:12.5px;border:1px solid var(--line-strong);border-radius:4px;padding:3px 22px 3px 8px;background:#fff}
   .mock-title{position:absolute;left:0;right:0;text-align:center;pointer-events:none}
   .mock-title b{display:block;font-size:17px;font-weight:800}
   .mock-title span{font-size:11.5px;color:var(--muted)}
+  .mock-pill{margin-left:auto;z-index:1;white-space:nowrap;align-self:center;
+             background:rgba(2,165,112,.12);color:var(--green);border:1px solid rgba(2,165,112,.35);
+             border-radius:99px;padding:5px 12px;font-size:11px;font-weight:600}
   .mock-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px;margin-bottom:10px}
   .mock-card{background:#fff;border:1px solid var(--line-strong);border-radius:10px;padding:12px 14px}
   .mock-card .hd{display:flex;justify-content:space-between;align-items:flex-start;gap:10px}
   .mock-card .hd b{font-size:12.5px}
   .mock-card .hd .big{font-size:17px;font-weight:800;white-space:nowrap}
   .mock-card .hd small{font-size:11px;color:var(--muted);display:block;margin-top:2px;font-weight:400}
+  .mock-card.tier{position:relative;padding-top:16px}
+  .mock-card.tier .bar{position:absolute;top:0;left:0;right:0;height:4px;border-radius:10px 10px 0 0}
+  .grp{font-size:9.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:0 0 9px}
+  .mock-grp{font-size:10.5px;font-weight:800;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:16px 0 8px}
+  .selbox{background:#fff;border:1px solid var(--line-strong);border-radius:6px;padding:5px 10px;font-size:12px;white-space:nowrap;display:inline-block}
+  .note{font-size:10.5px;color:var(--muted);margin-top:11px;line-height:1.5}
+  .sub{display:block;color:var(--muted);font-size:11px;margin-top:3px}
   .track{height:4px;border-radius:99px;background:#dfe3e8;margin:12px 0 5px;position:relative}
   .track i{position:absolute;left:0;top:0;bottom:0;background:var(--blue);border-radius:99px}
   .track b{position:absolute;top:50%;width:13px;height:13px;margin:-6.5px 0 0 -6.5px;border:2px solid var(--blue);
@@ -95,29 +113,38 @@
   .scale{display:flex;justify-content:space-between;font-size:9.5px;color:var(--muted)}
   .dot{width:10px;height:10px;border-radius:50%;display:inline-block;margin-right:6px;vertical-align:0}
   .badge{font-size:9px;font-weight:700;letter-spacing:.07em;padding:2px 7px;border-radius:99px;
-         background:#d7dfe5;color:var(--muted);border:1px solid var(--line-strong)}
+         background:#d7dfe5;color:var(--muted);border:1px solid var(--line-strong);white-space:nowrap}
   .badge.g{background:rgba(2,165,112,.12);color:var(--green);border-color:rgba(2,165,112,.35)}
   .opt{border:1px solid var(--line-strong);border-radius:8px;padding:8px 10px;margin-top:7px;font-size:11.5px}
   .opt.sel{border-color:var(--blue);background:rgba(2,85,165,.09)}
-  .opt.lock{border-color:rgba(2,165,112,.35);background:rgba(2,165,112,.08);display:flex;justify-content:space-between;align-items:center}
+  .opt.lock{border-color:rgba(2,165,112,.35);background:rgba(2,165,112,.08);display:flex;justify-content:space-between;align-items:center;gap:8px}
   .opt b{display:block;font-size:12px}
   .opt span{color:var(--muted);font-size:11px}
   .seclbl{font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--muted);margin:12px 0 2px}
+  .mock-fut{border:1px dashed var(--line-strong);border-radius:10px;background:#f4f5f6;color:var(--muted);
+            padding:11px 14px;font-size:12px;display:flex;justify-content:space-between;align-items:center;
+            gap:10px;margin-bottom:10px;opacity:.8}
+  .mock-foot{background:#fff;border:1px solid var(--line-strong);border-radius:10px;padding:10px 14px;
+             display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;
+             font-size:11.5px;color:var(--muted)}
+  .btns{display:flex;gap:8px}
+  .btn{border:1px solid var(--line-strong);border-radius:7px;padding:6px 12px;font-size:11.5px;background:#fff;opacity:.5}
+  .btn.pri{background:var(--blue);border-color:var(--blue);color:#fff}
 
-  svg.er{display:block;width:100%;height:auto;max-width:100%}
+  svg.er{display:block;width:100%;min-width:880px;height:auto}
   .er-legend{display:flex;flex-wrap:wrap;gap:16px;margin-top:14px;font-size:12.5px;color:var(--muted)}
   .er-legend i{display:inline-block;width:12px;height:12px;border-radius:3px;margin-right:6px;vertical-align:-1px}
-
-  figure.shot{margin:14px 0 22px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:12px}
-  figure.shot img{display:block;width:100%;height:auto;border:1px solid var(--line-strong);border-radius:8px}
-  figure.shot figcaption{margin-top:10px;font-size:13px;color:var(--muted);line-height:1.6}
-  figure.shot figcaption code{font-size:12px}
 
   ul.tight{margin:8px 0;padding-left:20px}
   ul.tight li{margin:5px 0}
   footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--line-strong);color:var(--muted);font-size:13px}
   a{color:var(--blue)}
-  @media (max-width:640px){ nav.toc ol{columns:1} .wrap{padding:20px 14px 60px} }
+  @media (max-width:640px){
+    nav.toc ol{columns:1} .wrap{padding:20px 14px 60px}
+    .mock-top{flex-wrap:wrap}
+    .mock-title{position:static;text-align:left;order:3;width:100%}
+    .mock-pill{margin-left:0}
+  }
 </style>
 </head>
 <body>
@@ -125,10 +152,11 @@
 
 <header class="page">
   <h1>Dispatch Configuration — Schema &amp; API</h1>
-  <p class="sub">Use Case A · FieldJetX · two new tables, two endpoints, one screen</p>
+  <p class="sub">Use Case A · FieldJetX · four tables, two endpoints, one screen, one feature flag</p>
   <div class="meta">
     <span class="chip">Author <strong>Saravana Rajan</strong></span>
-    <span class="chip">Updated <strong>5 Aug 2026</strong></span>
+    <span class="chip">Updated <strong>6 Aug 2026</strong></span>
+    <span class="chip">Supersedes <strong>the two-table draft of 5 Aug</strong></span>
     <span class="chip">Built &amp; tested <strong>locally</strong></span>
     <span class="chip">DEV / QA / STG <strong>pending DBA</strong></span>
   </div>
@@ -140,13 +168,15 @@
     <li><a href="#what">What this screen does</a></li>
     <li><a href="#screen">The screen</a></li>
     <li><a href="#er">ER diagram</a></li>
-    <li><a href="#t1">Table 1 — DispatchAutoConfig</a></li>
-    <li><a href="#t2">Table 2 — DispatchAutoConfigPriority</a></li>
+    <li><a href="#changes">What changed, and why</a></li>
+    <li><a href="#lookups">Reference tables — Tier &amp; Strategy</a></li>
+    <li><a href="#t-config">Table — DispatchAutoConfig</a></li>
+    <li><a href="#t-tier">Table — DispatchAutoConfigTier</a></li>
     <li><a href="#mapping">How data becomes the screen</a></li>
     <li><a href="#api">API &amp; responses</a></li>
-    <li><a href="#live">Live data — proof it works</a></li>
+    <li><a href="#flag">Feature flag</a></li>
     <li><a href="#decisions">Design decisions</a></li>
-    <li><a href="#findings">Findings needing a decision</a></li>
+    <li><a href="#findings">Open questions</a></li>
     <li><a href="#migration">Migration &amp; status</a></li>
   </ol>
 </nav>
@@ -160,99 +190,172 @@
     someone who already knows the site.
   </p>
   <p>
-    This screen lets a dispatcher tune that behaviour <strong>per on-call region</strong>. For each
-    region it sets two response timers, and for each dispatch type it sets the scoring strategy used
-    to rank technicians.
+    This screen lets a dispatcher tune that behaviour <strong>per on-call region</strong>. For the region as
+    a whole it sets how fast offers fan out and how far the engine will look; for each
+    <strong>classification tier</strong> (Emergency, High, Normal) it sets how technicians are ranked and how
+    long the engine waits before escalating.
   </p>
-  <div class="card">
+  <div class="card scroll">
     <table>
-      <thead><tr><th>Setting</th><th>What it controls</th></tr></thead>
+      <thead><tr><th style="width:32%">Setting</th><th style="width:14%">Scope</th><th>What it controls</th></tr></thead>
       <tbody>
-        <tr><td class="f">Accept / reject window</td><td>Seconds a technician has to accept an offered job before the engine moves to the next candidate</td></tr>
-        <tr><td class="f">ETA request window</td><td>Seconds a technician has to reply with an arrival estimate</td></tr>
-        <tr><td class="f">Scoring strategy</td><td>Per dispatch type: rank by speed, by site familiarity, or a weighted blend of the two</td></tr>
-        <tr><td class="f">Weight balance</td><td>When the strategy is Combined, the split between speed and familiarity</td></tr>
+        <tr><td class="f">Time before next offer</td><td>Region</td>
+            <td>Seconds before the next-ranked technician is <em>also</em> offered the job. Paces how quickly the cascade widens — it never expires an offer already out.</td></tr>
+        <tr><td class="f">Search radius</td><td>Region</td>
+            <td>Technicians further away than this are not offered the call.</td></tr>
+        <tr><td class="f">Ranking method</td><td>Tier</td>
+            <td>Rank by speed, by site familiarity, or a weighted blend of the two.</td></tr>
+        <tr><td class="f">Weight balance</td><td>Tier</td>
+            <td>When the method is Combined, the split between speed and familiarity.</td></tr>
+        <tr><td class="f">Familiarity lookback</td><td>Tier</td>
+            <td>How far back visit history counts — 6/12/18/24 months, or All.</td></tr>
+        <tr><td class="f">Wait for accept before escalating</td><td>Tier</td>
+            <td>Minutes after everyone eligible has been offered the job before it moves to Needs Attention for a human.</td></tr>
       </tbody>
     </table>
+  </div>
+  <div class="callout">
+    <p><strong>A tier is not a priority.</strong> <code>dbo.Priority</code> is per-company free text; a tier is the
+    fixed classification those roll up to. Section&nbsp;4 explains why they are kept apart, and section&nbsp;12 records
+    the mapping question still open with the client.</p>
   </div>
 </section>
 
 <!-- 2 -->
 <section id="screen">
   <h2 class="sec"><span class="n">2</span>The screen</h2>
-  <p class="lede">Simplified replica of <code>/systemConfig/dispatch-config</code>. Every value shown comes from the database.</p>
+  <p class="lede">
+    Simplified replica of <code>/systemConfig/dispatch-configuration</code> — nav item <strong>Dispatch Config</strong>.
+    Every value shown comes from the database.
+  </p>
 
   <div class="mock">
     <div class="mock-top">
-      <div class="mock-region"><span class="lbl">REGION</span><span class="val">Albuquerque, NM ⌄</span></div>
-      <div class="mock-title"><b>Dispatch Configuration</b><span>Set the scoring strategy for each dispatch type per on-call region</span></div>
+      <div class="mock-region"><span class="lbl">ON-CALL REGION</span><span class="val">Albuquerque, NM ⌄</span></div>
+      <div class="mock-title"><b>Dispatch Configuration</b><span>Set how Auto-Dispatch ranks technicians and paces offers, per on-call region.</span></div>
+      <div class="mock-pill">All changes saved</div>
     </div>
 
     <div class="mock-row">
       <div class="mock-card">
-        <div class="hd"><div><b>Accept / reject window</b><small>Time a technician has to accept an offered job</small></div><div class="big">41<span style="font-size:11px">s</span></div></div>
-        <div class="track"><i style="width:28%"></i><b style="left:28%"></b></div>
-        <div class="scale"><span>10s</span><span>120s</span></div>
+        <div class="grp">Offer timing</div>
+        <div class="hd">
+          <div><b>Time before next offer</b><small>How long before the next-ranked technician is also offered the job</small></div>
+          <div class="big">30<span style="font-size:11px">s</span></div>
+        </div>
+        <div class="track"><i style="width:25%"></i><b style="left:25%"></b></div>
+        <div class="scale"><span>0s</span><span>step 5</span><span>120s</span></div>
       </div>
+
       <div class="mock-card">
-        <div class="hd"><div><b>ETA request window</b><small>Time allowed to respond with an arrival estimate</small></div><div class="big">30<span style="font-size:11px">s</span></div></div>
-        <div class="track"><i style="width:18%"></i><b style="left:18%"></b></div>
-        <div class="scale"><span>10s</span><span>120s</span></div>
+        <div class="grp">Eligibility &amp; workload</div>
+        <div class="hd">
+          <div><b>Search radius</b><small>Technicians further away are not offered the call</small></div>
+          <div class="selbox">40 mi ⌄</div>
+        </div>
+        <div class="note">10 · 15 · 25 · 40 mi. Service vs construction is filtered automatically (Rule 3) — not configurable here.</div>
       </div>
     </div>
 
+    <div class="mock-grp">Ranking by classification</div>
+
     <div class="mock-row">
-      <div class="mock-card">
-        <div class="hd"><b><span class="dot" style="background:var(--amber)"></span>Emergency</b><span class="badge">LOCKED</span></div>
-        <small style="color:var(--muted);font-size:11px">Critical, time-sensitive orders</small>
+      <div class="mock-card tier">
+        <i class="bar" style="background:#E02222"></i>
+        <div class="hd"><b><span class="dot" style="background:#E02222"></span>Emergency</b><span class="badge">LOCKED</span></div>
+        <small class="sub">Critical, time-sensitive orders.</small>
         <div class="opt lock"><span><b>Speed-based</b><span>Availability + travel time</span></span><span class="badge g">LOCKED</span></div>
-        <div class="seclbl">How it scores</div>
-        <div class="opt"><b>01&nbsp; Availability</b><span>How soon they're free for a new job</span></div>
-        <div class="opt"><b>02&nbsp; Travel time</b><span>Drive time to this job site</span></div>
+        <div class="note">Ranking cannot be changed for this tier.</div>
+        <div class="seclbl">Wait for accept before escalating</div>
+        <div class="hd" style="align-items:center"><small style="font-size:10.5px;color:var(--muted)">then Needs Attention</small><div class="big">10<span style="font-size:11px">m</span></div></div>
+        <div class="track"><i style="width:14%"></i><b style="left:14%"></b></div>
+        <div class="scale"><span>0 min</span><span>60 min</span></div>
       </div>
 
-      <div class="mock-card">
-        <div class="hd"><b><span class="dot" style="background:var(--red)"></span>High</b></div>
-        <small style="color:var(--muted);font-size:11px">Priority jobs needing prompt attention</small>
-        <div class="seclbl">Scoring strategy</div>
+      <div class="mock-card tier">
+        <i class="bar" style="background:#F97031"></i>
+        <div class="hd"><b><span class="dot" style="background:#F97031"></span>High</b></div>
+        <small class="sub">Priority jobs needing prompt attention.</small>
+        <div class="seclbl">Ranking method</div>
         <div class="opt"><b>Speed-based</b><span>Fastest available tech</span></div>
+        <div class="opt"><b>Familiarity-based</b><span>Knows the site best</span></div>
         <div class="opt sel"><b>◉ Combined</b><span>Weighted blend of speed and familiarity</span></div>
         <div class="opt" style="background:#fafbfc">
           <div class="seclbl" style="margin-top:0">Weight balance</div>
           <div style="display:flex;justify-content:space-between">
-            <span><b style="color:var(--blue);font-size:16px">50%</b><span>SPEED</span></span>
-            <span style="text-align:right"><b style="color:var(--ink-soft);font-size:16px">50%</b><span>FAMILIARITY</span></span>
+            <span><b style="color:var(--blue);font-size:16px">60%</b><span>SPEED</span></span>
+            <span style="text-align:right"><b style="color:var(--ink-soft);font-size:16px">40%</b><span>FAMILIARITY</span></span>
           </div>
-          <div class="track" style="margin-bottom:2px"><i style="width:50%"></i><b style="left:50%"></b></div>
+          <div class="track" style="margin-bottom:2px"><i style="width:60%"></i><b style="left:60%"></b></div>
         </div>
+        <div class="seclbl">Familiarity lookback</div>
+        <div class="selbox">12 months ⌄</div>
+        <div class="seclbl">Wait for accept before escalating</div>
+        <div class="hd" style="align-items:center"><small style="font-size:10.5px;color:var(--muted)">then Needs Attention</small><div class="big">20<span style="font-size:11px">m</span></div></div>
+        <div class="track"><i style="width:31%"></i><b style="left:31%"></b></div>
+        <div class="scale"><span>0 min</span><span>60 min</span></div>
       </div>
 
-      <div class="mock-card">
-        <div class="hd"><b><span class="dot" style="background:var(--blue)"></span>Normal</b></div>
-        <small style="color:var(--muted);font-size:11px">Standard, routine service requests</small>
-        <div class="seclbl">Scoring strategy</div>
+      <div class="mock-card tier">
+        <i class="bar" style="background:#0255A5"></i>
+        <div class="hd"><b><span class="dot" style="background:#0255A5"></span>Normal</b></div>
+        <small class="sub">Standard, routine service requests.</small>
+        <div class="seclbl">Ranking method</div>
+        <div class="opt"><b>Speed-based</b><span>Fastest available tech</span></div>
         <div class="opt sel"><b>◉ Familiarity-based</b><span>Most familiar with the customer site</span></div>
         <div class="opt"><b>Combined</b><span>Weighted blend</span></div>
-        <div class="seclbl">How it scores</div>
-        <div class="opt"><b>01&nbsp; Visit history</b><span>How many times they've worked at this location</span></div>
+        <div class="seclbl">Familiarity lookback</div>
+        <div class="selbox">All ⌄</div>
+        <div class="note">Weight balance is hidden — it only appears for <b>Combined</b>.</div>
+        <div class="seclbl">Wait for accept before escalating</div>
+        <div class="hd" style="align-items:center"><small style="font-size:10.5px;color:var(--muted)">then Needs Attention</small><div class="big">30<span style="font-size:11px">m</span></div></div>
+        <div class="track"><i style="width:48%"></i><b style="left:48%"></b></div>
+        <div class="scale"><span>0 min</span><span>60 min</span></div>
       </div>
+    </div>
+
+    <div class="mock-fut"><span>Skill / seniority ranking — coming later</span><span class="badge">DISABLED</span></div>
+
+    <div class="mock-foot">
+      <span>This configuration applies to <b>Albuquerque, NM</b> only.</span>
+      <span class="btns"><span class="btn">Reset</span><span class="btn pri">Save configuration</span></span>
     </div>
   </div>
 
-  <div class="callout">
-    <p><strong>One child row = one column.</strong> The three columns are not hardcoded — the screen renders one
-    column per eligible <code>dbo.Priority</code> row. Add a fourth eligible priority and a fourth column appears
-    with no code change.</p>
+  <div class="card" style="margin-top:16px">
+    <h3 style="margin-top:0">Reading the layout</h3>
+    <ul class="tight">
+      <li><strong>Header row</strong> — on-call region select on the left, title and subtitle centred, save-status pill on the right.</li>
+      <li><strong>Two equal columns.</strong> <em>Offer timing</em> holds one control (Time before next offer, slider 0–120 in
+        steps of 5, default 30&nbsp;s). <em>Eligibility &amp; workload</em> holds one control (Search radius, select
+        10/15/25/40&nbsp;mi, default 40).</li>
+      <li><strong>Ranking by classification</strong> — three equal-height cards, each with a 4&nbsp;px coloured top bar taken
+        from <code>DispatchTier.ColorHex</code>. Emergency shows a LOCKED badge and a green read-only <em>Speed-based</em> box
+        instead of radios. High and Normal show three radio cards. The weight-balance slider appears
+        <strong>only for Combined</strong>; the familiarity-lookback select appears for
+        <strong>Familiarity-based or Combined</strong>. Every card ends with the wait-for-accept slider (0–60&nbsp;min;
+        defaults 10 / 20 / 30).</li>
+      <li><strong>Future banner</strong> — a permanently disabled "Skill / seniority ranking — coming later" row, so the
+        gap is visible rather than silently missing.</li>
+      <li><strong>Sticky footer</strong> — scope note plus <em>Reset</em> and <em>Save configuration</em>, both disabled until
+        the form is dirty.</li>
+    </ul>
+  </div>
+
+  <div class="callout warn">
+    <p><strong>Removed from the earlier design:</strong> ETA re-prompts, the workload cap, and the on-site
+    short-circuit. None of them are on the screen and none of them are in the schema.</p>
   </div>
 </section>
 
 <!-- 3 -->
 <section id="er">
   <h2 class="sec"><span class="n">3</span>ER diagram</h2>
-  <p class="lede">Blue boxes are new. Grey boxes already exist in FieldJetX and are only read from.</p>
+  <p class="lede">Blue boxes are new. The grey box already exists in FieldJetX and is only read from.</p>
 
   <div class="card scroll">
-    <svg class="er" viewBox="0 0 960 660" role="img" aria-label="Entity relationship diagram">
+    <svg class="er" viewBox="0 0 1020 960" role="img"
+         aria-label="Entity relationship diagram: OnCallRegion feeds DispatchAutoConfig, which owns DispatchAutoConfigTier; DispatchTier and DispatchScoringStrategy are reference tables feeding DispatchAutoConfigTier, and DispatchTier also references DispatchScoringStrategy for its locked strategy">
       <defs>
         <marker id="crow" markerWidth="14" markerHeight="14" refX="12" refY="7" orient="auto">
           <path d="M2,7 L12,2 M2,7 L12,7 M2,7 L12,12" stroke="#4b5363" stroke-width="1.4" fill="none"/>
@@ -263,88 +366,127 @@
       </defs>
 
       <!-- existing: OnCallRegion -->
-      <rect x="30" y="30" width="270" height="104" rx="10" fill="#eef1f4" stroke="#bac4cb" stroke-width="1.5"/>
-      <rect x="30" y="30" width="270" height="30" rx="10" fill="#dfe4e9" stroke="#bac4cb" stroke-width="1.5"/>
-      <rect x="30" y="52" width="270" height="8" fill="#dfe4e9"/>
-      <text x="44" y="50" font-size="13.5" font-weight="700" fill="#25283a">dbo.OnCallRegion</text>
-      <text x="268" y="50" font-size="10" fill="#4b5363" text-anchor="end">existing</text>
-      <text x="44" y="80" font-size="12" font-family="monospace" fill="#111">OnCallRegionId</text>
-      <text x="186" y="80" font-size="9.5" font-weight="700" fill="#7a5c00">PK</text>
-      <text x="44" y="100" font-size="12" font-family="monospace" fill="#4b5363">OnCallRegionName</text>
-      <text x="44" y="120" font-size="12" font-family="monospace" fill="#4b5363">IsActive</text>
+      <rect x="30" y="20" width="280" height="104" rx="10" fill="#eef1f4" stroke="#bac4cb" stroke-width="1.5"/>
+      <rect x="30" y="20" width="280" height="30" rx="10" fill="#dfe4e9" stroke="#bac4cb" stroke-width="1.5"/>
+      <rect x="30" y="42" width="280" height="8" fill="#dfe4e9"/>
+      <text x="44" y="40" font-size="13.5" font-weight="700" fill="#25283a">dbo.OnCallRegion</text>
+      <text x="296" y="40" font-size="10" fill="#4b5363" text-anchor="end">existing</text>
+      <text x="44" y="72" font-size="12" font-family="monospace" fill="#111">OnCallRegionId</text>
+      <text x="152" y="72" font-size="9.5" font-weight="700" fill="#7a5c00">PK</text>
+      <text x="44" y="92" font-size="12" font-family="monospace" fill="#4b5363">OnCallRegionName</text>
+      <text x="44" y="112" font-size="12" font-family="monospace" fill="#4b5363">IsActive</text>
 
-      <!-- existing: Priority -->
-      <rect x="660" y="30" width="270" height="144" rx="10" fill="#eef1f4" stroke="#bac4cb" stroke-width="1.5"/>
-      <rect x="660" y="30" width="270" height="30" rx="10" fill="#dfe4e9" stroke="#bac4cb" stroke-width="1.5"/>
-      <rect x="660" y="52" width="270" height="8" fill="#dfe4e9"/>
-      <text x="674" y="50" font-size="13.5" font-weight="700" fill="#25283a">dbo.Priority</text>
-      <text x="898" y="50" font-size="10" fill="#4b5363" text-anchor="end">existing</text>
-      <text x="674" y="80" font-size="12" font-family="monospace" fill="#111">PriorityId</text>
-      <text x="770" y="80" font-size="9.5" font-weight="700" fill="#7a5c00">PK</text>
-      <text x="674" y="100" font-size="12" font-family="monospace" fill="#4b5363">CompanyId</text>
-      <text x="674" y="120" font-size="12" font-family="monospace" fill="#4b5363">PriorityName</text>
-      <text x="674" y="140" font-size="12" font-family="monospace" fill="#4b5363">PriorityDesc</text>
-      <text x="674" y="160" font-size="12" font-family="monospace" fill="#4b5363">Color</text>
+      <!-- new reference: DispatchScoringStrategy -->
+      <rect x="600" y="20" width="300" height="178" rx="10" fill="#ffffff" stroke="#0255a5" stroke-width="2"/>
+      <rect x="600" y="20" width="300" height="30" rx="10" fill="#eaf2fb" stroke="#0255a5" stroke-width="2"/>
+      <rect x="601" y="42" width="298" height="8" fill="#eaf2fb"/>
+      <text x="614" y="40" font-size="13" font-weight="800" fill="#0255a5">dbo.DispatchScoringStrategy</text>
+      <text x="886" y="40" font-size="10" fill="#0255a5" text-anchor="end">NEW</text>
+      <text x="614" y="72" font-size="11.5" font-family="monospace" fill="#111">DispatchScoringStrategyId</text>
+      <text x="795" y="72" font-size="9.5" font-weight="700" fill="#7a5c00">PK</text>
+      <text x="614" y="92" font-size="11.5" font-family="monospace" fill="#111">StrategyCode</text>
+      <text x="710" y="92" font-size="9.5" font-weight="700" fill="#02694a">UQ</text>
+      <text x="614" y="112" font-size="11.5" font-family="monospace" fill="#4b5363">StrategyName</text>
+      <text x="614" y="132" font-size="11.5" font-family="monospace" fill="#4b5363">StrategyDesc</text>
+      <text x="614" y="152" font-size="11.5" font-family="monospace" fill="#4b5363">DisplayOrder</text>
+      <text x="614" y="176" font-size="10.5" fill="#4b5363" font-style="italic">3 seeded rows · Speed · Familiarity · Combined</text>
+
+      <!-- new reference: DispatchTier -->
+      <rect x="600" y="258" width="300" height="238" rx="10" fill="#ffffff" stroke="#0255a5" stroke-width="2"/>
+      <rect x="600" y="258" width="300" height="30" rx="10" fill="#eaf2fb" stroke="#0255a5" stroke-width="2"/>
+      <rect x="601" y="280" width="298" height="8" fill="#eaf2fb"/>
+      <text x="614" y="278" font-size="13" font-weight="800" fill="#0255a5">dbo.DispatchTier</text>
+      <text x="886" y="278" font-size="10" fill="#0255a5" text-anchor="end">NEW</text>
+      <text x="614" y="310" font-size="11.5" font-family="monospace" fill="#111">DispatchTierId</text>
+      <text x="716" y="310" font-size="9.5" font-weight="700" fill="#7a5c00">PK</text>
+      <text x="614" y="330" font-size="11.5" font-family="monospace" fill="#111">TierCode</text>
+      <text x="680" y="330" font-size="9.5" font-weight="700" fill="#02694a">UQ</text>
+      <text x="614" y="350" font-size="11.5" font-family="monospace" fill="#4b5363">TierName</text>
+      <text x="614" y="370" font-size="11.5" font-family="monospace" fill="#4b5363">TierDesc</text>
+      <text x="614" y="390" font-size="11.5" font-family="monospace" fill="#4b5363">ColorHex</text>
+      <text x="614" y="410" font-size="11.5" font-family="monospace" fill="#4b5363">DisplayOrder</text>
+      <text x="614" y="430" font-size="11.5" font-family="monospace" fill="#111">IsRankingLocked</text>
+      <text x="614" y="450" font-size="11.5" font-family="monospace" fill="#111">LockedScoringStrategyId</text>
+      <text x="777" y="450" font-size="9.5" font-weight="700" fill="#0255a5">FK</text>
+      <text x="614" y="474" font-size="10.5" fill="#4b5363" font-style="italic">3 seeded rows · Emergency · High · Normal</text>
 
       <!-- new: DispatchAutoConfig -->
-      <rect x="30" y="270" width="340" height="286" rx="10" fill="#ffffff" stroke="#0255a5" stroke-width="2"/>
-      <rect x="30" y="270" width="340" height="32" rx="10" fill="#eaf2fb" stroke="#0255a5" stroke-width="2"/>
-      <rect x="31" y="292" width="338" height="10" fill="#eaf2fb"/>
-      <text x="44" y="291" font-size="13.5" font-weight="800" fill="#0255a5">DispatchAutoConfig</text>
-      <text x="356" y="291" font-size="10" fill="#0255a5" text-anchor="end">NEW</text>
-      <text x="44" y="324" font-size="12" font-family="monospace" fill="#111">DispatchAutoConfigId</text>
-      <text x="230" y="324" font-size="9.5" font-weight="700" fill="#7a5c00">PK</text>
-      <text x="44" y="346" font-size="12" font-family="monospace" fill="#111">CompanyId</text>
-      <text x="44" y="368" font-size="12" font-family="monospace" fill="#111">ScopeTypeId</text>
-      <text x="44" y="390" font-size="12" font-family="monospace" fill="#111">OnCallRegionId</text>
-      <text x="188" y="390" font-size="9.5" font-weight="700" fill="#0255a5">FK</text>
-      <text x="44" y="412" font-size="12" font-family="monospace" fill="#111">AcceptRejectWindowSeconds</text>
-      <text x="44" y="434" font-size="12" font-family="monospace" fill="#111">EtaRequestWindowSeconds</text>
-      <line x1="44" y1="448" x2="356" y2="448" stroke="#dfe3e8" stroke-width="1"/>
-      <text x="44" y="470" font-size="11.5" font-family="monospace" fill="#4b5363">IsActive</text>
-      <text x="44" y="490" font-size="11.5" font-family="monospace" fill="#4b5363">InsertDt · InsertUserId</text>
-      <text x="44" y="510" font-size="11.5" font-family="monospace" fill="#4b5363">UpdateDt · UpdateUserId</text>
-      <text x="44" y="534" font-size="10.5" fill="#4b5363" font-style="italic">one row per on-call region</text>
+      <rect x="30" y="258" width="330" height="250" rx="10" fill="#ffffff" stroke="#0255a5" stroke-width="2"/>
+      <rect x="30" y="258" width="330" height="32" rx="10" fill="#eaf2fb" stroke="#0255a5" stroke-width="2"/>
+      <rect x="31" y="280" width="328" height="10" fill="#eaf2fb"/>
+      <text x="44" y="279" font-size="13" font-weight="800" fill="#0255a5">dbo.DispatchAutoConfig</text>
+      <text x="346" y="279" font-size="10" fill="#0255a5" text-anchor="end">NEW</text>
+      <text x="44" y="314" font-size="12" font-family="monospace" fill="#111">DispatchAutoConfigId</text>
+      <text x="194" y="314" font-size="9.5" font-weight="700" fill="#7a5c00">PK</text>
+      <text x="44" y="336" font-size="12" font-family="monospace" fill="#111">OnCallRegionId</text>
+      <text x="150" y="336" font-size="9.5" font-weight="700" fill="#0255a5">FK</text>
+      <text x="176" y="336" font-size="9.5" font-weight="700" fill="#02694a">UQ</text>
+      <text x="44" y="358" font-size="12" font-family="monospace" fill="#111">StaggerSeconds</text>
+      <text x="44" y="380" font-size="12" font-family="monospace" fill="#111">SearchRadiusMiles</text>
+      <line x1="44" y1="394" x2="346" y2="394" stroke="#dfe3e8" stroke-width="1"/>
+      <text x="44" y="416" font-size="11.5" font-family="monospace" fill="#4b5363">IsActive</text>
+      <text x="44" y="436" font-size="11.5" font-family="monospace" fill="#4b5363">InsertDt · InsertUserId</text>
+      <text x="44" y="456" font-size="11.5" font-family="monospace" fill="#4b5363">UpdateDt · UpdateUserId</text>
+      <text x="44" y="482" font-size="10.5" fill="#4b5363" font-style="italic">one row per on-call region</text>
 
-      <!-- new: DispatchAutoConfigPriority -->
-      <rect x="590" y="270" width="340" height="286" rx="10" fill="#ffffff" stroke="#0255a5" stroke-width="2"/>
-      <rect x="590" y="270" width="340" height="32" rx="10" fill="#eaf2fb" stroke="#0255a5" stroke-width="2"/>
-      <rect x="591" y="292" width="338" height="10" fill="#eaf2fb"/>
-      <text x="604" y="291" font-size="13.5" font-weight="800" fill="#0255a5">DispatchAutoConfigPriority</text>
-      <text x="916" y="291" font-size="10" fill="#0255a5" text-anchor="end">NEW</text>
-      <text x="604" y="324" font-size="11.5" font-family="monospace" fill="#111">DispatchAutoConfigPriorityId</text>
-      <text x="856" y="324" font-size="9.5" font-weight="700" fill="#7a5c00">PK</text>
-      <text x="604" y="346" font-size="12" font-family="monospace" fill="#111">DispatchAutoConfigId</text>
-      <text x="790" y="346" font-size="9.5" font-weight="700" fill="#0255a5">FK</text>
-      <text x="604" y="368" font-size="12" font-family="monospace" fill="#111">PriorityId</text>
-      <text x="700" y="368" font-size="9.5" font-weight="700" fill="#0255a5">FK</text>
-      <text x="604" y="390" font-size="12" font-family="monospace" fill="#111">ScoringStrategyId</text>
-      <text x="604" y="412" font-size="12" font-family="monospace" fill="#111">SpeedWeightPct</text>
-      <text x="604" y="434" font-size="12" font-family="monospace" fill="#111">IsLocked</text>
-      <line x1="604" y1="448" x2="916" y2="448" stroke="#dfe3e8" stroke-width="1"/>
-      <text x="604" y="470" font-size="11.5" font-family="monospace" fill="#4b5363">IsActive</text>
-      <text x="604" y="490" font-size="11.5" font-family="monospace" fill="#4b5363">InsertDt · InsertUserId</text>
-      <text x="604" y="510" font-size="11.5" font-family="monospace" fill="#4b5363">UpdateDt · UpdateUserId</text>
-      <text x="604" y="534" font-size="10.5" fill="#4b5363" font-style="italic">one row per dispatch type = one column on screen</text>
+      <!-- new: DispatchAutoConfigTier -->
+      <rect x="270" y="610" width="390" height="300" rx="10" fill="#ffffff" stroke="#0255a5" stroke-width="2"/>
+      <rect x="270" y="610" width="390" height="32" rx="10" fill="#eaf2fb" stroke="#0255a5" stroke-width="2"/>
+      <rect x="271" y="632" width="388" height="10" fill="#eaf2fb"/>
+      <text x="284" y="631" font-size="13" font-weight="800" fill="#0255a5">dbo.DispatchAutoConfigTier</text>
+      <text x="646" y="631" font-size="10" fill="#0255a5" text-anchor="end">NEW</text>
+      <text x="284" y="666" font-size="12" font-family="monospace" fill="#111">DispatchAutoConfigTierId</text>
+      <text x="466" y="666" font-size="9.5" font-weight="700" fill="#7a5c00">PK</text>
+      <text x="284" y="688" font-size="12" font-family="monospace" fill="#111">DispatchAutoConfigId</text>
+      <text x="436" y="688" font-size="9.5" font-weight="700" fill="#0255a5">FK</text>
+      <text x="284" y="710" font-size="12" font-family="monospace" fill="#111">DispatchTierId</text>
+      <text x="392" y="710" font-size="9.5" font-weight="700" fill="#0255a5">FK</text>
+      <text x="284" y="732" font-size="12" font-family="monospace" fill="#111">DispatchScoringStrategyId</text>
+      <text x="474" y="732" font-size="9.5" font-weight="700" fill="#0255a5">FK</text>
+      <text x="284" y="754" font-size="12" font-family="monospace" fill="#111">SpeedWeightPct</text>
+      <text x="284" y="776" font-size="12" font-family="monospace" fill="#111">FamiliarityLookbackMonths</text>
+      <text x="474" y="776" font-size="10" fill="#4b5363">NULL = All</text>
+      <text x="284" y="798" font-size="12" font-family="monospace" fill="#111">WaitForAcceptMinutes</text>
+      <line x1="284" y1="812" x2="646" y2="812" stroke="#dfe3e8" stroke-width="1"/>
+      <text x="284" y="834" font-size="11.5" font-family="monospace" fill="#4b5363">IsActive</text>
+      <text x="284" y="854" font-size="11.5" font-family="monospace" fill="#4b5363">InsertDt · InsertUserId</text>
+      <text x="284" y="874" font-size="11.5" font-family="monospace" fill="#4b5363">UpdateDt · UpdateUserId</text>
+      <text x="284" y="898" font-size="10.5" fill="#4b5363" font-style="italic">one row per tier per region · 3 rows per config</text>
 
-      <!-- relationships -->
-      <path d="M165,134 L165,270" stroke="#4b5363" stroke-width="1.6" fill="none" marker-start="url(#one)" marker-end="url(#crow)"/>
-      <rect x="176" y="185" width="128" height="34" rx="6" fill="#ffffff" stroke="#dfe3e8"/>
-      <text x="186" y="199" font-size="10.5" fill="#4b5363">1 region has</text>
-      <text x="186" y="212" font-size="10.5" fill="#4b5363">0..1 config</text>
+      <!-- 1 · OnCallRegion → DispatchAutoConfig -->
+      <path d="M170,124 L170,258" stroke="#4b5363" stroke-width="1.6" fill="none" marker-start="url(#one)" marker-end="url(#crow)"/>
+      <rect x="182" y="164" width="146" height="34" rx="6" fill="#ffffff" stroke="#dfe3e8"/>
+      <text x="192" y="178" font-size="10.5" fill="#4b5363">1 region has</text>
+      <text x="192" y="191" font-size="10.5" fill="#4b5363">0..1 config · UNIQUE</text>
 
-      <path d="M795,174 L795,270" stroke="#4b5363" stroke-width="1.6" fill="none" marker-start="url(#one)" marker-end="url(#crow)"/>
-      <rect x="806" y="200" width="124" height="34" rx="6" fill="#ffffff" stroke="#dfe3e8"/>
-      <text x="816" y="214" font-size="10.5" fill="#4b5363">1 priority has</text>
-      <text x="816" y="227" font-size="10.5" fill="#4b5363">many rows</text>
+      <!-- 2 · DispatchScoringStrategy → DispatchTier (LockedScoringStrategyId) -->
+      <path d="M750,198 L750,258" stroke="#4b5363" stroke-width="1.6" fill="none" marker-start="url(#one)" marker-end="url(#crow)"/>
+      <text x="762" y="222" font-size="10" fill="#4b5363">LockedScoringStrategyId</text>
+      <text x="762" y="236" font-size="10" fill="#4b5363">0..1 · locked tiers only</text>
 
-      <path d="M370,400 L590,400" stroke="#0255a5" stroke-width="2" fill="none" marker-start="url(#one)" marker-end="url(#crow)"/>
-      <rect x="404" y="358" width="152" height="34" rx="6" fill="#eaf2fb" stroke="#b9d4ee"/>
-      <text x="414" y="372" font-size="10.5" fill="#0255a5">1 config has 3 rows</text>
-      <text x="414" y="385" font-size="10.5" fill="#0255a5">ON DELETE CASCADE</text>
+      <!-- 3 · DispatchAutoConfig → DispatchAutoConfigTier -->
+      <path d="M170,508 L170,700 L270,700" stroke="#0255a5" stroke-width="2" fill="none" marker-start="url(#one)" marker-end="url(#crow)"/>
+      <rect x="192" y="545" width="204" height="34" rx="6" fill="#eaf2fb" stroke="#b9d4ee"/>
+      <text x="202" y="559" font-size="10.5" fill="#0255a5">1 config has 3 tier rows</text>
+      <text x="202" y="572" font-size="10.5" fill="#0255a5">ON DELETE CASCADE</text>
 
-      <text x="480" y="620" font-size="11" fill="#4b5363" text-anchor="middle">
-        UNIQUE (CompanyId, OnCallRegionId) · UNIQUE (DispatchAutoConfigId, PriorityId)
+      <!-- 4 · DispatchTier → DispatchAutoConfigTier -->
+      <path d="M750,496 L750,760 L660,760" stroke="#0255a5" stroke-width="2" fill="none" marker-start="url(#one)" marker-end="url(#crow)"/>
+      <rect x="768" y="596" width="190" height="34" rx="6" fill="#eaf2fb" stroke="#b9d4ee"/>
+      <text x="778" y="610" font-size="10.5" fill="#0255a5">1 tier · many config</text>
+      <text x="778" y="623" font-size="10.5" fill="#0255a5">rows (one per region)</text>
+
+      <!-- 5 · DispatchScoringStrategy → DispatchAutoConfigTier -->
+      <path d="M900,110 L975,110 L975,845 L660,845" stroke="#0255a5" stroke-width="2" fill="none" marker-start="url(#one)" marker-end="url(#crow)"/>
+      <rect x="690" y="790" width="262" height="34" rx="6" fill="#eaf2fb" stroke="#b9d4ee"/>
+      <text x="700" y="804" font-size="10.5" fill="#0255a5">chosen ranking method per tier row</text>
+      <text x="700" y="817" font-size="10.5" fill="#0255a5">FK, not a magic number</text>
+
+      <text x="510" y="936" font-size="11" fill="#4b5363" text-anchor="middle">
+        UNIQUE (OnCallRegionId) · UNIQUE (DispatchAutoConfigId, DispatchTierId)
+      </text>
+      <text x="510" y="952" font-size="11" fill="#4b5363" text-anchor="middle">
+        UNIQUE (TierCode) · UNIQUE (StrategyCode) — no CompanyId and no ScopeTypeId anywhere
       </text>
     </svg>
 
@@ -353,348 +495,600 @@
       <span><i style="background:#eef1f4;border:1px solid #bac4cb"></i>Existing FieldJetX table (read only)</span>
       <span><span class="key pk">PK</span> primary key</span>
       <span><span class="key fk">FK</span> foreign key</span>
+      <span><span class="key uq">UQ</span> unique</span>
     </div>
   </div>
 </section>
 
 <!-- 4 -->
-<section id="t1">
-  <h2 class="sec"><span class="n">4</span>Table 1 — <code>dbo.DispatchAutoConfig</code></h2>
-  <p class="lede">One row per on-call region. Holds the two timers.</p>
+<section id="changes">
+  <h2 class="sec"><span class="n">4</span>What changed, and why</h2>
+  <p class="lede">
+    The 5 Aug draft had two tables — <code>DispatchAutoConfig</code> and
+    <code>DispatchAutoConfigPriority</code> — and six columns that are now gone. This section is the
+    important one: the deletions carry more design information than the additions.
+  </p>
+
+  <h3>Columns that were removed</h3>
+  <div class="card scroll">
+    <table>
+      <thead><tr><th style="width:30%">Removed</th><th>Why it is gone</th></tr></thead>
+      <tbody>
+        <tr>
+          <td class="gone">CompanyId</td>
+          <td><code>dbo.OnCallRegion</code> has <strong>no CompanyId</strong>, so a region is not company-owned —
+              <code>OnCallRegionId</code> alone identifies a configuration. And there are
+              <strong>zero foreign keys to <code>dbo.Company</code> anywhere in this database</strong>, so the column
+              could not be validated: nothing would stop it silently disagreeing with the region it sat next to.
+              A column the database cannot check is a column the database cannot defend.</td>
+        </tr>
+        <tr>
+          <td class="gone">ScopeTypeId</td>
+          <td>The configuration unit is settled as the on-call region, so the column only ever held
+              <code>1</code>. A discriminator whose value never varies is noise, and
+              <code>ScopeTypeId = 1</code> tells a reader nothing. <code>OnCallRegionId</code> is now
+              <strong>NOT NULL and UNIQUE</strong>, which states exactly the same rule in a form the database enforces.</td>
+        </tr>
+        <tr>
+          <td class="gone">PriorityId</td>
+          <td>A tier is <strong>not</strong> a <code>dbo.Priority</code> row. Priority is per-company free text
+              (~8 values such as <em>Overtime Approved</em> and <em>Hot Parts</em>); a tier is the fixed
+              classification those roll up to. That mapping is <strong>still open with the client</strong> and is
+              deliberately not modelled yet — it belongs in its own table once confirmed, and nothing in these four
+              tables has to change when it arrives.</td>
+        </tr>
+        <tr>
+          <td class="gone">IsLocked</td>
+          <td>It was always <code>true</code> for Emergency and <code>false</code> otherwise — fully derivable, so
+              storing it per region per tier was storing the same fact three times over. It now lives once, on
+              <code>dbo.DispatchTier</code> as <code>IsRankingLocked</code> (with
+              <code>LockedScoringStrategyId</code> naming what it is locked <em>to</em>) — as data, rather than an
+              <code>if (name == "Emergency")</code> branch in code.</td>
+        </tr>
+        <tr>
+          <td class="gone">AcceptRejectWindowSeconds</td>
+          <td>The offer model inverted: <strong>offers no longer expire</strong>. There is no window a technician
+              can miss. Pacing is now <code>StaggerSeconds</code> — how long before the <em>next</em> technician is also
+              offered the job — and escalation is per tier via <code>WaitForAcceptMinutes</code>.</td>
+        </tr>
+        <tr>
+          <td class="gone">EtaRequestWindowSeconds</td>
+          <td>ETA re-prompts were removed from the screen, so there is nothing to configure.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="callout warn">
+    <p><strong>Open question on CompanyId.</strong> Dropping it assumes a given on-call region is configured the
+    same way for every tenant. If two tenants ever need <em>different</em> configurations for the
+    <em>same</em> region, the fix is a <strong>composite unique key</strong>
+    (<code>CompanyId</code>, <code>OnCallRegionId</code>) with a real constraint behind it — not a loose,
+    unvalidated column reintroduced on its own.</p>
+  </div>
+
+  <h3>Why reference tables instead of enum columns</h3>
+  <p>
+    The earlier draft stored these as small integers — <code>ScoringStrategyId</code> as a
+    <code>tinyint</code> with <code>1 = Speed</code>, <code>2 = Familiarity</code>, <code>3 = Combined</code>, and the
+    tier implied by a <code>PriorityId</code>. Reading a row then told you "3" and nothing else.
+  </p>
+  <div class="quote">
+    Never map ids manually. Reading a row and seeing "1" tells you nothing — if it's a foreign key, that's a fact.
+    <cite>— tech lead, design call, 6 Aug 2026</cite>
+  </div>
+  <p>
+    So <code>DispatchScoringStrategy</code> and <code>DispatchTier</code> are tables, the config rows point at them by
+    foreign key, and one join turns a row into "Combined" instead of "3". The database rejects an unknown strategy
+    because there is no such row, not because a <code>CHECK (… IN (1,2,3))</code> was remembered.
+  </p>
+  <div class="callout">
+    <p><strong>PK type is <code>uniqueidentifier</code>,</strong> matching the house convention: all
+    <strong>8 of the 8</strong> existing small reference tables in this database use one, and there are
+    <strong>no integer PKs</strong> to be consistent with. <code>TierCode</code> and <code>StrategyCode</code> are the
+    stable programmatic handles — the engine matches on those, never on a generated id and never on the display name,
+    so display text stays safe to reword.</p>
+  </div>
+
+  <h3>Two tables became four</h3>
+  <div class="card scroll">
+    <table>
+      <thead><tr><th style="width:34%">Table</th><th style="width:16%">Kind</th><th>Cardinality</th></tr></thead>
+      <tbody>
+        <tr><td class="f">dbo.DispatchScoringStrategy</td><td>Reference</td><td>3 seeded rows — Speed, Familiarity, Combined</td></tr>
+        <tr><td class="f">dbo.DispatchTier</td><td>Reference</td><td>3 seeded rows — Emergency, High, Normal</td></tr>
+        <tr><td class="f">dbo.DispatchAutoConfig</td><td>Configuration</td><td>One row per on-call region</td></tr>
+        <tr><td class="f">dbo.DispatchAutoConfigTier</td><td>Configuration</td><td>One row per tier per region — three per config</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="color:var(--muted);font-size:13.5px">
+    Both seed scripts are idempotent: re-running inserts nothing and overwrites nothing, so display text edited in
+    place survives a re-run.
+  </p>
+</section>
+
+<!-- 5 -->
+<section id="lookups">
+  <h2 class="sec"><span class="n">5</span>Reference tables — <code>DispatchTier</code> &amp; <code>DispatchScoringStrategy</code></h2>
+  <p class="lede">Seeded once, read by both the screen and the ranking engine. Neither is edited by the screen.</p>
+
+  <h3><code>dbo.DispatchScoringStrategy</code></h3>
+  <div class="card scroll">
+    <table>
+      <thead><tr><th style="width:30%">Field</th><th style="width:17%">Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td class="f">DispatchScoringStrategyId <span class="key pk">PK</span></td><td class="t">uniqueidentifier</td>
+            <td>Default <code>NEWID()</code>. What <code>DispatchAutoConfigTier</code> points at.</td></tr>
+        <tr><td class="f">StrategyCode <span class="key uq">UQ</span></td><td class="t">varchar(20)</td>
+            <td><strong>The stable handle.</strong> The engine and the API match on this — never on the id, never on the display name. Never renamed.</td></tr>
+        <tr><td class="f">StrategyName</td><td class="t">varchar(50)</td><td>Shown on the radio card. Safe to reword without touching code.</td></tr>
+        <tr><td class="f">StrategyDesc</td><td class="t">varchar(255)</td><td>The grey line under the radio label.</td></tr>
+        <tr><td class="f">DisplayOrder</td><td class="t">tinyint</td><td>Radio order on screen.</td></tr>
+        <tr><td class="f">IsActive · InsertDt · InsertUserId<br>UpdateDt · UpdateUserId</td><td class="t">bit · datetime<br>uniqueidentifier</td>
+            <td>Standard FieldJetX soft-delete and audit set.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <div class="card scroll" style="margin-top:12px">
+    <table>
+      <thead><tr><th style="width:20%">StrategyCode</th><th style="width:24%">StrategyName</th><th>StrategyDesc</th></tr></thead>
+      <tbody>
+        <tr><td class="f">Speed</td><td>Speed-based</td><td>Fastest available tech — availability + travel time</td></tr>
+        <tr><td class="f">Familiarity</td><td>Familiarity-based</td><td>Most familiar with the customer site — visit history</td></tr>
+        <tr><td class="f">Combined</td><td>Combined</td><td>Weighted blend of speed and familiarity</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <h3><code>dbo.DispatchTier</code></h3>
+  <div class="card scroll">
+    <table>
+      <thead><tr><th style="width:30%">Field</th><th style="width:17%">Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td class="f">DispatchTierId <span class="key pk">PK</span></td><td class="t">uniqueidentifier</td>
+            <td>Default <code>NEWID()</code>.</td></tr>
+        <tr><td class="f">TierCode <span class="key uq">UQ</span></td><td class="t">varchar(20)</td>
+            <td><strong>The stable handle</strong> the engine uses. Never renamed.</td></tr>
+        <tr><td class="f">TierName</td><td class="t">varchar(50)</td><td>Card heading.</td></tr>
+        <tr><td class="f">TierDesc</td><td class="t">varchar(255)</td><td>Card subtitle. Seeded, so unlike <code>Priority.PriorityDesc</code> it is never NULL.</td></tr>
+        <tr><td class="f">ColorHex</td><td class="t">char(7)</td>
+            <td>The 4&nbsp;px card top bar and dot. Hex so the value is readable in the row — unlike <code>Priority.Color</code>, a packed int nobody can decode by eye.</td></tr>
+        <tr><td class="f">DisplayOrder</td><td class="t">tinyint</td><td>Left-to-right card order, and the order the API returns tiers in.</td></tr>
+        <tr><td class="f">IsRankingLocked</td><td class="t">bit</td>
+            <td><strong>Replaces the old per-row <code>IsLocked</code>.</strong> Emergency must stay Speed-based; held as data so the rule is visible in the row and the server can reject a crafted request without hardcoding a name.</td></tr>
+        <tr><td class="f">LockedScoringStrategyId <span class="key fk">FK</span></td><td class="t">uniqueidentifier</td>
+            <td>What a locked tier is pinned <em>to</em>. NULL when <code>IsRankingLocked = 0</code>.</td></tr>
+        <tr><td class="f">IsActive · InsertDt · InsertUserId<br>UpdateDt · UpdateUserId</td><td class="t">bit · datetime<br>uniqueidentifier</td>
+            <td>Standard soft-delete and audit set.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p>
+    <strong>Check constraint</strong>
+    <code>(IsRankingLocked = 1 AND LockedScoringStrategyId IS NOT NULL) OR (IsRankingLocked = 0 AND LockedScoringStrategyId IS NULL)</code>
+    — a locked tier must say what it is locked to, and an unlocked one must not pretend to be pinned.
+  </p>
+  <div class="card scroll" style="margin-top:12px">
+    <table>
+      <thead><tr><th style="width:16%">TierCode</th><th style="width:16%">Colour</th><th style="width:16%">Locked</th><th>TierDesc</th></tr></thead>
+      <tbody>
+        <tr><td class="f">Emergency</td><td class="t"><span class="dot" style="background:#E02222"></span>#E02222</td>
+            <td>Yes → Speed</td><td>Critical, time-sensitive orders.</td></tr>
+        <tr><td class="f">High</td><td class="t"><span class="dot" style="background:#F97031"></span>#F97031</td>
+            <td>No</td><td>Priority jobs needing prompt attention.</td></tr>
+        <tr><td class="f">Normal</td><td class="t"><span class="dot" style="background:#0255A5"></span>#0255A5</td>
+            <td>No</td><td>Standard, routine service requests.</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- 6 -->
+<section id="t-config">
+  <h2 class="sec"><span class="n">6</span>Table — <code>dbo.DispatchAutoConfig</code></h2>
+  <p class="lede">One row per on-call region. Holds the two settings that apply to the whole region.</p>
   <div class="card scroll">
     <table>
       <thead><tr><th style="width:26%">Field</th><th style="width:17%">Type</th><th>Purpose</th></tr></thead>
       <tbody>
         <tr><td class="f">DispatchAutoConfigId <span class="key pk">PK</span></td><td class="t">uniqueidentifier</td>
-            <td>Unique id of the row. Auto-generated. The child table points back at this.</td></tr>
-        <tr><td class="f">CompanyId</td><td class="t">uniqueidentifier</td>
-            <td>Which tenant this belongs to (ClimatePros vs Zuggit). <strong>Required</strong> because <code>OnCallRegion</code> has no CompanyId of its own — without it the two brands would collide. Set from the logged-in session, never from the browser.</td></tr>
-        <tr><td class="f">ScopeTypeId</td><td class="t">tinyint</td>
-            <td>What kind of thing this config attaches to. <code>1</code>=On-Call Region, <code>2</code>=Division, <code>3</code>=Region, <code>4</code>=Company-wide. Always <code>1</code> today — a placeholder so the scope can change later without a rebuild.</td></tr>
-        <tr><td class="f">OnCallRegionId <span class="key fk">FK</span></td><td class="t">uniqueidentifier</td>
-            <td>Which region. Foreign key to the existing <code>dbo.OnCallRegion</code>. This is what the REGION dropdown selects.</td></tr>
-        <tr><td class="f">AcceptRejectWindowSeconds</td><td class="t">int</td>
-            <td><strong>The left slider.</strong> Seconds a technician has to accept an offered job before the engine moves on. Default 30, range 10–120.</td></tr>
-        <tr><td class="f">EtaRequestWindowSeconds</td><td class="t">int</td>
-            <td><strong>The right slider.</strong> Seconds a technician has to reply with an arrival estimate. Default 30, range 10–120.</td></tr>
+            <td>Unique id of the row, default <code>NEWID()</code>. The tier table points back at this.</td></tr>
+        <tr><td class="f">OnCallRegionId <span class="key fk">FK</span> <span class="key uq">UQ</span></td><td class="t">uniqueidentifier</td>
+            <td><strong>The configuration unit,</strong> and the only thing that identifies a configuration. NOT NULL and UNIQUE — one configuration per region, enforced by the database. FK to the existing <code>dbo.OnCallRegion</code>; this is what the region select chooses.</td></tr>
+        <tr><td class="f">StaggerSeconds</td><td class="t">int</td>
+            <td><strong>"Time before next offer".</strong> How long before the next-ranked technician is <em>also</em> offered the job. Paces how fast the cascade widens; it never expires an offer already out. Default 30; screen exposes 0–120 in steps of 5.</td></tr>
+        <tr><td class="f">SearchRadiusMiles</td><td class="t">int</td>
+            <td><strong>"Search radius".</strong> Technicians further than this are not offered the call. Default 40; screen exposes 10/15/25/40. Stored as a number, so adding 60&nbsp;mi is a UI change only.</td></tr>
         <tr><td class="f">IsActive</td><td class="t">bit</td>
-            <td>Soft delete — switch a region's config off without deleting the row. FieldJetX convention (95 other tables do this).</td></tr>
-        <tr><td class="f">InsertDt</td><td class="t">datetime</td><td>When the row was created.</td></tr>
-        <tr><td class="f">InsertUserId</td><td class="t">uniqueidentifier</td><td>Who created it.</td></tr>
-        <tr><td class="f">UpdateDt</td><td class="t">datetime</td><td>When it was last changed.</td></tr>
-        <tr><td class="f">UpdateUserId</td><td class="t">uniqueidentifier</td>
-            <td><strong>Who last changed it.</strong> Matters here — scoring changes affect which technicians get work, so there is an audit trail.</td></tr>
-      </tbody>
-    </table>
-  </div>
-  <p><strong>Unique index</strong> <code>(CompanyId, OnCallRegionId)</code> — one configuration per region per company, so you cannot accidentally create two for the same region.</p>
-</section>
-
-<!-- 5 -->
-<section id="t2">
-  <h2 class="sec"><span class="n">5</span>Table 2 — <code>dbo.DispatchAutoConfigPriority</code></h2>
-  <p class="lede">One row per dispatch type within a region. Three rows today = the three columns on screen.</p>
-  <div class="card scroll">
-    <table>
-      <thead><tr><th style="width:26%">Field</th><th style="width:17%">Type</th><th>Purpose</th></tr></thead>
-      <tbody>
-        <tr><td class="f">DispatchAutoConfigPriorityId <span class="key pk">PK</span></td><td class="t">uniqueidentifier</td>
-            <td>Unique id of this child row.</td></tr>
-        <tr><td class="f">DispatchAutoConfigId <span class="key fk">FK</span></td><td class="t">uniqueidentifier</td>
-            <td><strong>Which region's config this belongs to.</strong> The link that keeps Albuquerque's settings separate from Boston's. <code>ON DELETE CASCADE</code> — delete a config and its children clean themselves up.</td></tr>
-        <tr><td class="f">PriorityId <span class="key fk">FK</span></td><td class="t">uniqueidentifier</td>
-            <td><strong>Which dispatch type.</strong> Foreign key to existing <code>dbo.Priority</code>. Column heading, coloured dot and subtitle all come from there, so nothing is duplicated.</td></tr>
-        <tr><td class="f">ScoringStrategyId</td><td class="t">tinyint</td>
-            <td><strong>Which radio button is selected.</strong> <code>1</code>=Speed-based, <code>2</code>=Familiarity-based, <code>3</code>=Combined. One number replaces the whole radio group. Also decides whether the Weight Balance slider appears — only <code>3</code> shows it.</td></tr>
-        <tr><td class="f">SpeedWeightPct</td><td class="t">tinyint</td>
-            <td><strong>The Weight Balance slider,</strong> 0–100. <code>70</code> means 70% speed / 30% familiarity. Familiarity is always <code>100 − this</code>, so there is no second column that could drift out of sync. Only meaningful when the strategy is Combined.</td></tr>
-        <tr><td class="f">IsLocked</td><td class="t">bit</td>
-            <td><strong>Marks a column read-only</strong> (Emergency). Sent to the UI so it disables the radios — <em>and</em> the save skips locked rows, so a hand-crafted HTTP request still cannot change it. Stored as data rather than a hardcoded name check, because priority names differ per company.</td></tr>
-        <tr><td class="f">IsActive</td><td class="t">bit</td><td>Soft delete, same as the parent.</td></tr>
-        <tr><td class="f">InsertDt · InsertUserId<br>UpdateDt · UpdateUserId</td><td class="t">datetime<br>uniqueidentifier</td>
-            <td>Same audit set as the parent.</td></tr>
+            <td>Soft delete — switch a region's config off without deleting the row. FieldJetX convention.</td></tr>
+        <tr><td class="f">InsertDt · InsertUserId</td><td class="t">datetime<br>uniqueidentifier</td><td>When the row was created, and by whom.</td></tr>
+        <tr><td class="f">UpdateDt · UpdateUserId</td><td class="t">datetime<br>uniqueidentifier</td>
+            <td><strong>Who last changed it.</strong> Rendered on screen as "Last edited by … · …", and what a future optimistic-concurrency check would compare — no separate version column needed. Ranking changes affect who gets work, so the trail matters.</td></tr>
       </tbody>
     </table>
   </div>
   <p>
-    <strong>Unique constraint</strong> <code>(DispatchAutoConfigId, PriorityId)</code> — a region cannot have two rows for the same dispatch type.<br>
-    <strong>Check constraints</strong> <code>SpeedWeightPct BETWEEN 0 AND 100</code> and <code>ScoringStrategyId IN (1,2,3)</code> — the database rejects nonsense even if the application has a bug.
+    <strong>Constraints</strong> — <code>UNIQUE (OnCallRegionId)</code>,
+    <code>FK → dbo.OnCallRegion</code>, <code>CHECK StaggerSeconds BETWEEN 0 AND 600</code>,
+    <code>CHECK SearchRadiusMiles BETWEEN 1 AND 500</code>.
+    The CHECKs are sanity rails only; the real limits live in the service layer, so changing a slider's range
+    does not need a schema change.
   </p>
 </section>
 
-<!-- 6 -->
-<section id="mapping">
-  <h2 class="sec"><span class="n">6</span>How data becomes the screen</h2>
-  <div class="card">
-<pre><code>  DispatchAutoConfig
-  ├ OnCallRegionId  ───────────────────►  REGION [ Albuquerque, NM ▾ ]
-  ├ AcceptRejectWindowSeconds  41  ────►  Accept / reject  [──●────] 41s
-  └ EtaRequestWindowSeconds    30  ────►  ETA request      [──●────] 30s
-                                          ┌───────────┬───────────┬───────────┐
-  DispatchAutoConfigPriority ⨝ Priority   │ EMERGENCY │   HIGH    │  NORMAL   │
-  ─────────────────────────────────────   │           │           │           │
-  row 1  Priority.PriorityName ─────────► │ heading   │           │           │
-         Priority.Color ────────────────► │ 🟡 dot    │           │           │
-         Priority.PriorityDesc ─────────► │ subtitle  │           │           │
-         IsLocked = 1 ──────────────────► │ [LOCKED]  │           │           │
-         ScoringStrategyId = 1 ─────────► │ ● Speed   │           │           │
-                                          │           │           │           │
-  row 2  ScoringStrategyId = 3 ───────────┼───────────┼● Combined │           │
-         SpeedWeightPct = 50 ─────────────┼───────────┼ 50% / 50% │           │
-                                          │           │           │           │
-  row 3  ScoringStrategyId = 2 ───────────┴───────────┴───────────┼● Familiar.│
-                                                                  └───────────┘</code></pre>
+<!-- 7 -->
+<section id="t-tier">
+  <h2 class="sec"><span class="n">7</span>Table — <code>dbo.DispatchAutoConfigTier</code></h2>
+  <p class="lede">One row per tier within a region — three rows per config, one per card on screen.</p>
+  <div class="card scroll">
+    <table>
+      <thead><tr><th style="width:26%">Field</th><th style="width:17%">Type</th><th>Purpose</th></tr></thead>
+      <tbody>
+        <tr><td class="f">DispatchAutoConfigTierId <span class="key pk">PK</span></td><td class="t">uniqueidentifier</td>
+            <td>Unique id of this child row.</td></tr>
+        <tr><td class="f">DispatchAutoConfigId <span class="key fk">FK</span></td><td class="t">uniqueidentifier</td>
+            <td><strong>Which region's config this belongs to.</strong> What keeps Albuquerque's settings separate from Boston's. <code>ON DELETE CASCADE</code> — delete a config and its three rows clean themselves up.</td></tr>
+        <tr><td class="f">DispatchTierId <span class="key fk">FK</span></td><td class="t">uniqueidentifier</td>
+            <td><strong>Which classification.</strong> FK to <code>dbo.DispatchTier</code> — heading, colour, subtitle, display order and the locked flag all come from there, so nothing is duplicated per region.</td></tr>
+        <tr><td class="f">DispatchScoringStrategyId <span class="key fk">FK</span></td><td class="t">uniqueidentifier</td>
+            <td><strong>Which radio card is selected.</strong> A foreign key, not a number — reading the row and joining once tells you "Combined" rather than "3". Also decides which extra controls render: the weight slider for Combined, the lookback select for Familiarity or Combined.</td></tr>
+        <tr><td class="f">SpeedWeightPct</td><td class="t">tinyint</td>
+            <td><strong>The weight-balance slider,</strong> 0–100, default 50. <code>70</code> means 70% speed / 30% familiarity — familiarity is always <code>100 − this</code>, so there is no second column to drift out of sync. Kept when the strategy is not Combined, so switching back restores the previous split.</td></tr>
+        <tr><td class="f">FamiliarityLookbackMonths</td><td class="t">smallint NULL</td>
+            <td><strong>The lookback select.</strong> How far back visit history counts. <strong>NULL means "All"</strong> — the screen's last option — rather than a magic <code>0</code> or <code>999</code>.</td></tr>
+        <tr><td class="f">WaitForAcceptMinutes</td><td class="t">int</td>
+            <td><strong>"Wait for accept before escalating".</strong> Once everyone eligible has been offered the job and this elapses, the dispatch moves to Needs Attention for a human. Defaults 10 / 20 / 30 for Emergency / High / Normal.</td></tr>
+        <tr><td class="f">IsActive · InsertDt · InsertUserId<br>UpdateDt · UpdateUserId</td><td class="t">bit · datetime<br>uniqueidentifier</td>
+            <td>Same soft-delete and audit set as the parent.</td></tr>
+      </tbody>
+    </table>
   </div>
+  <p>
+    <strong>Constraints</strong> — <code>UNIQUE (DispatchAutoConfigId, DispatchTierId)</code> (a region cannot have two
+    rows for the same tier), <code>CHECK SpeedWeightPct BETWEEN 0 AND 100</code>,
+    <code>CHECK WaitForAcceptMinutes BETWEEN 1 AND 1440</code>,
+    <code>CHECK FamiliarityLookbackMonths IS NULL OR BETWEEN 1 AND 120</code>.
+    <strong>Index</strong> — <code>IX_DispatchAutoConfigTier_Config (DispatchAutoConfigId)</code>, the read path: the
+    screen loads every tier row for one region.
+  </p>
   <div class="callout good">
-    <p><strong>Nothing about the columns is hardcoded.</strong> Headings, colours and subtitles all come from
-    <code>dbo.Priority</code>, so the screen is correct for any tenant — including Zuggit, whose priority list differs.</p>
+    <p><strong>Emergency gets a row too.</strong> Its ranking is locked by
+    <code>DispatchTier.IsRankingLocked</code>, but its <code>WaitForAcceptMinutes</code> is editable — so there is
+    real data to store, and all three tiers are present and symmetric. The old design's "Emergency has no child row"
+    special case is gone.</p>
   </div>
 </section>
 
-<!-- 7 -->
+<!-- 8 -->
+<section id="mapping">
+  <h2 class="sec"><span class="n">8</span>How data becomes the screen</h2>
+  <div class="card scroll">
+<pre><code>  DispatchAutoConfig                                  (one row · the region)
+  ├ OnCallRegionId ─────────────────────►  ON-CALL REGION [ Albuquerque, NM ▾ ]
+  ├ StaggerSeconds       30 ────────────►  Time before next offer  [─●──────] 30s
+  └ SearchRadiusMiles    40 ────────────►  Search radius           [ 40 mi ▾ ]
+
+                                          ┌───────────┬───────────┬───────────┐
+  DispatchAutoConfigTier                  │ EMERGENCY │   HIGH    │  NORMAL   │
+    ⨝ DispatchTier                        │ ▔▔▔▔▔▔▔▔▔ │ ▔▔▔▔▔▔▔▔▔ │ ▔▔▔▔▔▔▔▔▔ │  ← ColorHex = 4px top bar
+    ⨝ DispatchScoringStrategy             │           │           │           │
+  ──────────────────────────────────────  │           │           │           │
+  DispatchTier.TierName ────────────────► │ heading   │ heading   │ heading   │
+  DispatchTier.TierDesc ────────────────► │ subtitle  │ subtitle  │ subtitle  │
+  DispatchTier.IsRankingLocked = 1 ─────► │ [LOCKED]  │     ·     │     ·     │
+                                          │ no radios │           │           │
+  DispatchScoringStrategyId ────────────► │ Speed     │ ◉Combined │ ◉Familiar.│
+                                          │ (forced)  │           │           │
+  SpeedWeightPct        60 ─────────────► │     ·     │ 60% / 40% │     ·     │  ← Combined only
+  FamiliarityLookbackMonths 12 / NULL ──► │     ·     │ 12 months │    All    │  ← Familiarity or Combined
+  WaitForAcceptMinutes 10 / 20 / 30 ────► │  10 min   │  20 min   │  30 min   │
+                                          └───────────┴───────────┴───────────┘</code></pre>
+  </div>
+  <div class="callout good">
+    <p><strong>Nothing about the cards is hardcoded.</strong> Headings, subtitles, colours, order and the locked flag
+    all come from <code>dbo.DispatchTier</code>; the radio labels come from
+    <code>dbo.DispatchScoringStrategy</code>. Adding a fourth tier is a seed row, not a code change — and no
+    <code>if (name == "Emergency")</code> exists anywhere to break when text is reworded.</p>
+  </div>
+</section>
+
+<!-- 9 -->
 <section id="api">
-  <h2 class="sec"><span class="n">7</span>API &amp; responses</h2>
-  <p class="lede">Two endpoints. Both return <code>BaseInfo</code> (the FieldJetX standard envelope) and both are secured by default via <code>AppControllerBase</code>.</p>
+  <h2 class="sec"><span class="n">9</span>API &amp; responses</h2>
+  <p class="lede">
+    Two endpoints, both on the FieldJetX <code>BaseInfo</code> envelope and both secured by default via
+    <code>AppControllerBase</code>.
+  </p>
+
+  <div class="callout">
+    <p><strong>Errors are HTTP 200.</strong> The envelope carries the outcome: a failure returns
+    <code>saveError: true</code> with <code>message</code> set — <strong>never a 4xx or 5xx</strong>. Clients must check
+    <code>saveError</code>, not the status code. This is the existing house contract, not something new here.</p>
+  </div>
 
   <h3>Load the screen</h3>
   <div class="card">
-    <div class="ep"><span class="verb get">GET</span><span class="path">/api/DispatchConfig/GetConfig?scopeId={guid}&amp;scopeTypeId=1</span></div>
-    <p style="font-size:13.5px;color:var(--muted);margin:6px 0 0">Called when the page opens and whenever the region changes. Returns defaults (30 / 30 / Combined) if the region has never been configured.</p>
+    <div class="ep"><span class="verb get">GET</span><span class="path">/api/DispatchConfig/GetConfig?onCallRegionId={guid}</span></div>
+    <p style="font-size:13.5px;color:var(--muted);margin:6px 0 0">
+      Called when the page opens and whenever the region changes. If the region has never been configured it returns
+      defaults — <code>dispatchAutoConfigId</code> is <code>null</code> and <code>meta</code> is <code>null</code>, which
+      is how the screen knows to show "not yet configured" rather than a fake save date.
+    </p>
 <pre><code>{
   "primaryReturn": {
-    "scopeTypeId": 1,
-    "scopeId":   "F1E98E3D-9740-4BC7-A223-B54349D04C23",
-    "scopeName": "Albuquerque, NM",          <span style="color:#4b5363">// dropdown label + footer sentence</span>
-    "acceptRejectWindowSeconds": 41,         <span style="color:#4b5363">// left slider</span>
-    "etaRequestWindowSeconds":   30,         <span style="color:#4b5363">// right slider</span>
+    "dispatchAutoConfigId": "2821EBFB-...",   <span style="color:#4b5363">// null until the first save</span>
+    "onCallRegionId":       "F1E98E3D-...",
+    "onCallRegionName":     "Albuquerque, NM",   <span style="color:#4b5363">// select label + footer sentence</span>
+    "staggerSeconds":       30,                  <span style="color:#4b5363">// Time before next offer</span>
+    "searchRadiusMiles":    40,                  <span style="color:#4b5363">// Search radius</span>
 
-    "priorities": [                          <span style="color:#4b5363">// ONE ENTRY = ONE COLUMN</span>
+    "tiers": [                                   <span style="color:#4b5363">// ONE ENTRY = ONE CARD, ordered by displayOrder</span>
       {
-        "priorityId":        "3FE257A3-...",
-        "priorityName":      "Emergency",                    <span style="color:#4b5363">// column heading</span>
-        "priorityDesc":      "Critical, time-sensitive orders",
-        "color":             14072855,                       <span style="color:#4b5363">// the coloured dot</span>
-        "scoringStrategyId": 1,                              <span style="color:#4b5363">// which radio is filled</span>
-        "speedWeightPct":    100,
-        "isLocked":          true                            <span style="color:#4b5363">// draw LOCKED, disable radios</span>
+        "dispatchTierId":   "3FE257A3-...",
+        "tierCode":         "Emergency",         <span style="color:#4b5363">// stable handle — match on this</span>
+        "tierName":         "Emergency",         <span style="color:#4b5363">// card heading</span>
+        "tierDesc":         "Critical, time-sensitive orders.",
+        "colorHex":         "#E02222",           <span style="color:#4b5363">// 4px top bar + dot</span>
+        "displayOrder":     1,
+        "isRankingLocked":  true,                <span style="color:#4b5363">// draw LOCKED, render no radios</span>
+        "dispatchScoringStrategyId": "A1...",
+        "strategyCode":     "Speed",
+        "speedWeightPct":   100,
+        "familiarityLookbackMonths": null,       <span style="color:#4b5363">// null = "All"</span>
+        "waitForAcceptMinutes": 10
       },
-      { "priorityId": "8DF31E86-...", "priorityName": "High",
-        "scoringStrategyId": 3, "speedWeightPct": 50, "isLocked": false },
-      { "priorityId": "F76D9D14-...", "priorityName": "Normal",
-        "scoringStrategyId": 2, "speedWeightPct": 50, "isLocked": false }
-    ]
+      { "tierCode": "High",   "colorHex": "#F97031", "displayOrder": 2, "isRankingLocked": false,
+        "strategyCode": "Combined",    "speedWeightPct": 60,
+        "familiarityLookbackMonths": 12,   "waitForAcceptMinutes": 20 },
+      { "tierCode": "Normal", "colorHex": "#0255A5", "displayOrder": 3, "isRankingLocked": false,
+        "strategyCode": "Familiarity", "speedWeightPct": 50,
+        "familiarityLookbackMonths": null, "waitForAcceptMinutes": 30 }
+    ],
+
+    "strategies": [                              <span style="color:#4b5363">// the radio cards, ordered by displayOrder</span>
+      { "dispatchScoringStrategyId": "A1...", "strategyCode": "Speed",
+        "strategyName": "Speed-based",       "strategyDesc": "Fastest available tech ..." },
+      { "dispatchScoringStrategyId": "B2...", "strategyCode": "Familiarity",
+        "strategyName": "Familiarity-based", "strategyDesc": "Most familiar with the site ..." },
+      { "dispatchScoringStrategyId": "C3...", "strategyCode": "Combined",
+        "strategyName": "Combined",          "strategyDesc": "Weighted blend ..." }
+    ],
+
+    "meta": {                                    <span style="color:#4b5363">// null when nothing has been saved yet</span>
+      "updateDt":       "2026-08-06T11:42:07",
+      "updatedByName":  "Saravana Rajan"
+    }
   },
   "saveError": false,
   "message":   ""
 }</code></pre>
+    <p style="font-size:13.5px;color:var(--muted)">
+      <strong>The region select is not a new endpoint.</strong> It reuses the existing
+      <code>GET /api/Dispatch/GetOnCallRegions</code>.
+    </p>
   </div>
 
   <h3>Save the screen</h3>
   <div class="card">
     <div class="ep"><span class="verb put">PUT</span><span class="path">/api/DispatchConfig/SaveConfig</span></div>
-    <p style="font-size:13.5px;color:var(--muted);margin:6px 0 0">Called only when the user clicks <em>Save configuration</em>. Dragging a slider is pure browser state until then.</p>
+    <p style="font-size:13.5px;color:var(--muted);margin:6px 0 0">
+      Called only when the user clicks <em>Save configuration</em>. Dragging a slider is pure browser state until then.
+    </p>
 <pre><code>{
-  "scopeTypeId": 1,
-  "scopeId":     "F1E98E3D-9740-4BC7-A223-B54349D04C23",
-  "acceptRejectWindowSeconds": 41,
-  "etaRequestWindowSeconds":   30,
-  "priorities": [
-    { "priorityId": "8DF31E86-...", "scoringStrategyId": 3, "speedWeightPct": 50 },
-    { "priorityId": "F76D9D14-...", "scoringStrategyId": 2, "speedWeightPct": 50 }
+  "onCallRegionId":    "F1E98E3D-...",
+  "staggerSeconds":    30,
+  "searchRadiusMiles": 40,
+  "tiers": [
+    { "dispatchTierId": "3FE257A3-...", "dispatchScoringStrategyId": "A1-Speed...",
+      "speedWeightPct": 100, "familiarityLookbackMonths": null, "waitForAcceptMinutes": 10 },
+    { "dispatchTierId": "8DF31E86-...", "dispatchScoringStrategyId": "C3-Combined...",
+      "speedWeightPct": 60,  "familiarityLookbackMonths": 12,   "waitForAcceptMinutes": 20 },
+    { "dispatchTierId": "F76D9D14-...", "dispatchScoringStrategyId": "B2-Familiarity...",
+      "speedWeightPct": 50,  "familiarityLookbackMonths": null, "waitForAcceptMinutes": 30 }
   ]
 }</code></pre>
-    <p><strong>Success</strong> → <code>saveError: false</code>, and <code>primaryReturn</code> is the re-read configuration so the screen reflects exactly what was stored.</p>
+    <p>
+      <strong>All three tiers are required.</strong> The server rejects a partial payload rather than guessing what a
+      missing tier meant — a half-sent form cannot silently leave one classification on stale settings.
+    </p>
+    <p><strong>Success</strong> → <code>saveError: false</code>, and <code>primaryReturn</code> is the re-read
+    configuration in exactly the shape <code>GetConfig</code> returns, so the screen reflects what was actually stored.</p>
   </div>
 
   <div class="callout">
-    <p><strong>Two things deliberately absent from the request:</strong> <code>companyId</code> and <code>userId</code>.
-    Both are derived server side from <code>_userContext.BuildAppValidationCheck()</code>. If the browser sent
-    <code>companyId</code>, anyone could open dev tools, swap in Zuggit's GUID and overwrite their configuration.</p>
-    <p><strong>Emergency is also absent</strong> — it cannot be edited, so there is nothing to send. And even if a
-    crafted client sent it, the save skips rows where <code>IsLocked = 1</code>.</p>
+    <p><strong>Two things deliberately absent from every request:</strong> <code>companyId</code> and
+    <code>userId</code>. Both are resolved server side from the auth context
+    (<code>_userContext.BuildAppValidationCheck()</code>). Nothing the browser sends can influence whose data is written.
+    <code>CompanyId</code> is no longer a column at all — see section&nbsp;4.</p>
+    <p><strong>Emergency is sent, but cannot be changed.</strong> Unlike the old design it <em>is</em> in the payload,
+    because its <code>waitForAcceptMinutes</code> is editable. On save the server
+    <strong>force-applies the locked tier's <code>LockedScoringStrategyId</code></strong>, overwriting whatever strategy
+    the request carried. A crafted request cannot move Emergency off Speed — and the rule is read from
+    <code>dbo.DispatchTier</code>, not from a name comparison in code.</p>
   </div>
 
   <h3>Validation (server side)</h3>
   <div class="card scroll">
     <table>
-      <thead><tr><th>Condition</th><th>Message returned</th></tr></thead>
+      <thead><tr><th style="width:46%">Condition</th><th>Message returned (with <code>saveError: true</code>)</th></tr></thead>
       <tbody>
-        <tr><td>Timer outside 10–120s</td><td>Accept/reject window must be between 10 and 120 seconds.</td></tr>
-        <tr><td><code>scoringStrategyId</code> not 1, 2 or 3</td><td>Unknown scoring strategy.</td></tr>
-        <tr><td><code>speedWeightPct</code> above 100</td><td>Weight must be between 0 and 100.</td></tr>
-        <tr><td>No region selected</td><td>A region must be selected.</td></tr>
-        <tr><td>Unknown scope type</td><td>Unknown configuration scope.</td></tr>
+        <tr><td>No <code>onCallRegionId</code>, or unknown region</td><td>A valid on-call region must be selected.</td></tr>
+        <tr><td><code>staggerSeconds</code> outside 0–120</td><td>Time before next offer must be between 0 and 120 seconds.</td></tr>
+        <tr><td><code>searchRadiusMiles</code> not an offered value</td><td>Search radius must be 10, 15, 25 or 40 miles.</td></tr>
+        <tr><td>Fewer than three tiers, or a duplicate tier</td><td>All three classifications must be supplied.</td></tr>
+        <tr><td>Unknown <code>dispatchTierId</code> / <code>dispatchScoringStrategyId</code></td><td>Unknown classification or ranking method.</td></tr>
+        <tr><td><code>speedWeightPct</code> outside 0–100</td><td>Weight must be between 0 and 100.</td></tr>
+        <tr><td><code>familiarityLookbackMonths</code> not null and outside 1–120</td><td>Familiarity lookback is not a valid period.</td></tr>
+        <tr><td><code>waitForAcceptMinutes</code> outside 0–60</td><td>Wait for accept must be between 0 and 60 minutes.</td></tr>
       </tbody>
     </table>
   </div>
 </section>
 
-<!-- 7b -->
-<section id="live">
-  <h2 class="sec"><span class="n">8</span>Live data — proof it works</h2>
-  <p class="lede">
-    Screenshots from DBeaver against the local database, after saving from the screen. The
-    Accept/reject slider was moved to <strong>41s</strong> and saved; these are the rows that landed.
-  </p>
-
-  <h3><code>DispatchAutoConfig</code> — the parent row</h3>
-  <figure class="shot">
-    <img src="assets/db-dispatchautoconfig.png" alt="DispatchAutoConfig row showing scope and timer values">
-    <figcaption>
-      <code>ScopeTypeId = 1</code> (on-call region) · <code>OnCallRegionId = F1E98E3D…</code> (Albuquerque, NM) ·
-      <code>AcceptRejectWindowSeconds = 41</code> · <code>EtaRequestWindowSeconds = 30</code>
-    </figcaption>
-  </figure>
-  <figure class="shot">
-    <img src="assets/db-dispatchautoconfig-audit.png" alt="DispatchAutoConfig audit columns">
-    <figcaption>
-      Audit columns. <code>InsertUserId</code> and <code>UpdateUserId</code> are <code>9E12E8CB…</code> — the
-      signed-in user, resolved <strong>server side</strong>. The browser never sent it, which is what stops a
-      client writing to another tenant.
-    </figcaption>
-  </figure>
-
-  <h3><code>DispatchAutoConfigPriority</code> — the child rows</h3>
-  <figure class="shot">
-    <img src="assets/db-dispatchautoconfigpriority.png" alt="DispatchAutoConfigPriority rows">
-    <figcaption>
-      Two rows, both pointing at parent <code>2821EBFB…</code>. <code>8DF31E86…</code> is <em>High</em> and
-      <code>F76D9D14…</code> is <em>Normal</em>, each <code>ScoringStrategyId = 3</code> (Combined) at
-      <code>SpeedWeightPct = 50</code>.
-    </figcaption>
-  </figure>
-  <figure class="shot">
-    <img src="assets/db-dispatchautoconfigpriority-audit.png" alt="DispatchAutoConfigPriority audit columns">
-    <figcaption>Same audit set on the child rows.</figcaption>
-  </figure>
-
-  <div class="callout good">
-    <p><strong>Note what is <em>not</em> there: a third row.</strong> Emergency has no child row, because it is
-    locked. The screen doesn't send it and the save skips rows where <code>IsLocked = 1</code> — so it cannot be
-    changed even by a hand-crafted HTTP request, not just by a disabled radio button.</p>
+<!-- 10 -->
+<section id="flag">
+  <h2 class="sec"><span class="n">10</span>Feature flag</h2>
+  <p class="lede">The whole feature is gated by one LaunchDarkly key.</p>
+  <div class="card">
+    <p style="margin-top:0"><code>ui-enable-auto-dispatch-config</code></p>
+    <ul class="tight">
+      <li><strong>Angular</strong> — the <code>/systemConfig/dispatch-configuration</code> route and the
+        <em>Dispatch Config</em> nav item are both behind it. Flag off: no menu entry, and the route does not
+        resolve.</li>
+      <li><strong>API</strong> — both <code>GetConfig</code> and <code>SaveConfig</code> check it too. Gating only the UI
+        would leave the endpoints reachable by anyone who knows the URL, so the check is enforced on the server as well
+        as hidden on the client.</li>
+      <li><strong>Fails closed.</strong> If the flag cannot be resolved — LaunchDarkly unreachable, SDK not
+        initialised, key missing — it defaults to <strong>off</strong>. An outage can hide a finished feature, which is
+        recoverable; it can never expose an unfinished one, which is not.</li>
+    </ul>
   </div>
 </section>
 
-<!-- 8 -->
+<!-- 11 -->
 <section id="decisions">
-  <h2 class="sec"><span class="n">9</span>Design decisions</h2>
+  <h2 class="sec"><span class="n">11</span>Design decisions</h2>
   <div class="grid2">
     <div class="card">
-      <h3 style="margin-top:0">Two tables, not one</h3>
-      <p>Two different “per”: two numbers <strong>per region</strong> (the timers) and two numbers
-      <strong>per dispatch type</strong> (strategy + weight). Standard parent/child — the same shape as
-      Order → OrderLines.</p>
+      <h3 style="margin-top:0">Four tables, not two</h3>
+      <p>Two different "per" — settings <strong>per region</strong> (stagger, radius) and settings
+      <strong>per tier</strong> (method, weight, lookback, wait) — plus two <strong>reference</strong> tables that are
+      seeded, not configured. Splitting reference from configuration is what removes the magic numbers.</p>
     </div>
     <div class="card">
-      <h3 style="margin-top:0">EF, not stored procedures</h3>
-      <p><code>CPData.Repository</code> already calls <code>SaveChangesAsync</code> <strong>329 times</strong>, so
-      this matches existing practice. It also means the only DBA dependency is <code>CREATE TABLE</code> ×2,
-      which unblocks development days earlier.</p>
+      <h3 style="margin-top:0">Foreign keys over enum columns</h3>
+      <p>"If it's a foreign key, that's a fact." An unknown strategy is impossible because the row does not exist —
+      no <code>CHECK (… IN (1,2,3))</code> to remember to update, and a <code>SELECT</code> is self-describing.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Codes, not names, not ids</h3>
+      <p>The engine matches <code>TierCode</code> / <code>StrategyCode</code>. Ids are generated per environment, and
+      display names get reworded by whoever owns the copy. Codes are the only thing safe to branch on.</p>
     </div>
     <div class="card">
       <h3 style="margin-top:0">One weight column, not two</h3>
-      <p>Familiarity is always <code>100 − SpeedWeightPct</code>. Storing both would mean an invariant to
-      validate and floating-point drift to worry about. The UI already works in whole percentages.</p>
+      <p>Familiarity is always <code>100 − SpeedWeightPct</code>. Two columns would mean an invariant to validate and a
+      way for the pair to drift apart. The UI already works in whole percentages.</p>
     </div>
     <div class="card">
-      <h3 style="margin-top:0"><code>IsLocked</code> as data</h3>
-      <p>The obvious version is <code>if (name == "Emergency") disable()</code> — which breaks the moment a
-      company renames it, since <code>PriorityName</code> is per-company text. The server decides; the UI obeys.</p>
+      <h3 style="margin-top:0">NULL means "All"</h3>
+      <p><code>FamiliarityLookbackMonths</code> is nullable rather than using <code>0</code> or <code>999</code> as a
+      sentinel. "No limit" is genuinely the absence of a value, and a sentinel would eventually be summed or compared
+      by accident.</p>
     </div>
     <div class="card">
-      <h3 style="margin-top:0"><code>ScopeTypeId</code> — a hedge</h3>
-      <p>The scope question was still open. v1 always writes <code>1</code> with a real <code>OnCallRegionId</code>.
-      If it becomes Division we write <code>2</code> and add a nullable column — no data migration.</p>
-      <p style="font-size:13px;color:var(--muted)"><strong>Trade-off:</strong> keeping a real FK on
-      <code>OnCallRegionId</code> gives referential integrity but means one <code>ALTER TABLE</code> later. A generic
-      <code>ScopeId</code> avoids that but the database could no longer reject a bogus GUID. We chose integrity.</p>
+      <h3 style="margin-top:0">The lock lives on the tier</h3>
+      <p>Stored once on <code>dbo.DispatchTier</code> instead of on every config row, so it cannot be inconsistent
+      between regions — and enforced on save, not just disabled in the UI.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">EF, not stored procedures</h3>
+      <p><code>CPData.Repository</code> already calls <code>SaveChangesAsync</code> <strong>329 times</strong>, so this
+      matches existing practice. It also keeps the DBA dependency down to running two DDL scripts.</p>
+    </div>
+    <div class="card">
+      <h3 style="margin-top:0">Bounds in the service, rails in the schema</h3>
+      <p>CHECK constraints are wide sanity rails (0–600&nbsp;s, 1–500&nbsp;mi, 1–1440&nbsp;min). The real limits are the
+      service's, so changing a slider from 120&nbsp;s to 180&nbsp;s does not need a DBA ticket.</p>
     </div>
     <div class="card">
       <h3 style="margin-top:0">Deliberately left out</h3>
-      <p>ROWVERSION concurrency, two lookup tables, CHECK constraints on the slider bounds, a
-      fallback-resolution proc. Bounds are validated in the service instead, so changing 120s → 180s doesn't
-      need a DBA ticket. All are cheap to add later; none are cheap to remove once depended on.</p>
+      <p>ROWVERSION concurrency (<code>UpdateDt</code> would serve), a Priority→Tier mapping table (still open with the
+      client), and the skill / seniority ranking on the disabled banner. All cheap to add; none cheap to remove once
+      depended on.</p>
     </div>
   </div>
 </section>
 
-<!-- 9 -->
+<!-- 12 -->
 <section id="findings">
-  <h2 class="sec"><span class="n">10</span>Findings needing a decision</h2>
-  <p class="lede">These came out of building against real data and change the design assumptions.</p>
+  <h2 class="sec"><span class="n">12</span>Open questions</h2>
+  <p class="lede">Things that need a decision before or shortly after this ships.</p>
 
   <div class="callout warn">
-    <p><strong>1 · There is no “Emergency” priority.</strong> <code>dbo.Priority</code> holds <strong>18 rows</strong>
-    for our company and none is called Emergency:</p>
-    <p style="font-family:ui-monospace,monospace;font-size:12.5px;color:var(--ink-soft)">
-      High · Normal · HOT PARTS - ASAP · LOCKED - SCHEDULED · Overtime Approved · PM ·
-      Special Equipment · Warranty (Hot) · Trakyn - (CP) Triage · (P1) Emergency 2hr ·
-      (P2) Today 4hr · (P3) Next day · (P4) Installation · (P6) Scheduled PM · (P8) Parts order ·
-      (PUR) Large parts · (REF) Freon · <em>(one row with a blank name)</em>
-    </p>
-    <p><strong>Interim:</strong> eligible priorities and display names come from configuration, currently mapping
-    <code>Overtime Approved → "Emergency"</code>, plus High and Normal.
-    <strong>Question:</strong> is that the right row, and should the screen show the real name or the relabelled one?</p>
+    <p><strong>1 · Priority → Tier mapping is unresolved.</strong> <code>dbo.Priority</code> is per-company free text
+    (~8 values such as <em>Overtime Approved</em>, <em>Hot Parts</em>) and none of them is a clean "Emergency". A tier is
+    the fixed classification those roll up to, and the mapping is <strong>deliberately not modelled yet</strong> — it
+    belongs in its own table once the client confirms it. Until then the engine needs an agreed interim rule for
+    turning an order's priority into a tier. Nothing in these four tables has to change when the mapping table
+    arrives.</p>
   </div>
 
   <div class="callout warn">
-    <p><strong>2 · Every <code>PriorityDesc</code> is NULL.</strong> The grey subtitles in the design don't exist in
-    the data — they are supplied from configuration today. Populating <code>PriorityDesc</code> would be the better
-    fix and would benefit other screens too.</p>
+    <p><strong>2 · Is one configuration per region right for every tenant?</strong> <code>CompanyId</code> is gone
+    because <code>dbo.OnCallRegion</code> has none and nothing in the database could have validated it. If two tenants
+    must configure the <em>same</em> region differently, we add a composite unique key
+    (<code>CompanyId</code>, <code>OnCallRegionId</code>) — a schema change with a real constraint, not a loose column.
+    Cheap now, expensive after there is data.</p>
   </div>
 
   <div class="callout warn">
-    <p><strong>3 · One priority row has a blank name.</strong> Worth cleaning up — it would render as an unnamed
-    column if it were ever made eligible.</p>
+    <p><strong>3 · Who owns the tier display text and colours?</strong> <code>TierName</code>, <code>TierDesc</code> and
+    <code>ColorHex</code> are seeded and editable in place, and the seed script never overwrites them. If the client
+    wants different wording or accents, that is a one-row <code>UPDATE</code> per environment — but someone needs to
+    own it.</p>
   </div>
 
   <div class="callout">
-    <p><strong>Proposed proper fix</strong> — put the rule with the data instead of in appsettings:</p>
-    <pre style="margin:8px 0 0"><code>ALTER TABLE dbo.Priority
-  ADD IsAutoDispatchEligible bit NOT NULL
-      CONSTRAINT DF_Priority_AutoDispatch DEFAULT (0);</code></pre>
-    <p style="margin-top:10px">The screen then filters on that flag. The configuration list is an interim measure so
-    development wasn't blocked.</p>
+    <p><strong>Also open:</strong> when the feature flag is turned on per environment, and who runs the DDL for
+    DEV / QA / STG.</p>
   </div>
 </section>
 
-<!-- 10 -->
+<!-- 13 -->
 <section id="migration">
-  <h2 class="sec"><span class="n">11</span>Migration &amp; status</h2>
+  <h2 class="sec"><span class="n">13</span>Migration &amp; status</h2>
 
   <div class="callout">
     <p><strong>FieldJetX has no migration framework.</strong> Verified in the codebase:
     <strong>0</strong> EF migration folders, <strong>0</strong> <code>.sqlproj</code>, <strong>0</strong>
     <code>.dacpac</code>, <strong>0</strong> <code>CREATE PROCEDURE</code> scripts.</p>
-    <p>The database is the source of truth — <code>fieldgeticsContext</code> (11,394 lines, 544 DbSets) was
-    reverse-engineered <em>from</em> it. So “migration” here means <strong>handing the DBA a SQL script</strong>,
-    not running a tool. Script is ready: <code>DispatchAutoConfig_tables.sql</code>.</p>
+    <p>The database is the source of truth — <code>fieldgeticsContext</code> was reverse-engineered <em>from</em> it. So
+    "migration" here means <strong>handing the DBA a SQL script</strong>, not running a tool.</p>
   </div>
 
   <div class="card scroll">
     <table>
+      <thead><tr><th style="width:38%">Script</th><th style="width:22%">Order</th><th>Contents</th></tr></thead>
+      <tbody>
+        <tr><td class="f">01_dispatch_lookups.sql</td><td>First</td>
+            <td><code>DispatchScoringStrategy</code> + <code>DispatchTier</code>, with idempotent seed data (3 rows each).</td></tr>
+        <tr><td class="f">02_dispatch_auto_config_tables.sql</td><td>Second</td>
+            <td><code>DispatchAutoConfig</code> + <code>DispatchAutoConfigTier</code> and the read-path index. Its foreign keys reference script 01, so the order matters.</td></tr>
+      </tbody>
+    </table>
+  </div>
+  <p style="color:var(--muted);font-size:13.5px">
+    Both scripts are guarded (<code>IF NOT EXISTS</code>) and safe to re-run: existing tables are skipped, seed rows are
+    inserted only when missing, and display text edited in place is never overwritten. Neither carries a
+    <code>USE</code> statement — run them in the target database's context, matching the other DDL scripts in the repo.
+  </p>
+
+  <div class="card scroll" style="margin-top:16px">
+    <table>
       <thead><tr><th style="width:60%">Item</th><th>Status</th></tr></thead>
       <tbody>
-        <tr><td>Tables created and tested</td><td>✅ local SQL Server (Docker)</td></tr>
+        <tr><td>Four tables created, seeded and tested</td><td>✅ local SQL Server (Docker)</td></tr>
         <tr><td>Entities + <code>fieldgeticsContext</code> registration</td><td>✅</td></tr>
         <tr><td>Repository / Service / Controller</td><td>✅ builds clean, 0 errors</td></tr>
         <tr><td>DI registration in <code>Startup.cs</code></td><td>✅</td></tr>
+        <tr><td>Locked-tier strategy force-applied on save</td><td>✅</td></tr>
         <tr><td>Angular screen reading + writing through the API</td><td>✅</td></tr>
         <tr><td>Save → reload round-trip verified in the database</td><td>✅</td></tr>
-        <tr><td><strong>DEV / QA / STG</strong></td><td><strong>❌ needs DBA to run the DDL</strong></td></tr>
+        <tr><td>Feature flag on route, nav and both endpoints</td><td>✅ defaults off</td></tr>
+        <tr><td><strong>DEV / QA / STG</strong></td><td><strong>❌ needs DBA to run both scripts, in order</strong></td></tr>
       </tbody>
     </table>
   </div>
 
-  <h3>Open questions</h3>
-  <div class="card">
-    <ul class="tight">
-      <li>Is <code>Overtime Approved</code> the right row for Emergency?</li>
-      <li>Should the screen display the real name, or the relabelled “Emergency”?</li>
-      <li>Can we add <code>IsAutoDispatchEligible</code> to <code>dbo.Priority</code>?</li>
-      <li>Can <code>PriorityDesc</code> be populated? All 18 rows are NULL.</li>
-      <li>Who runs the DDL for DEV / QA / STG, and what is the lead time?</li>
-    </ul>
+  <div class="callout warn">
+    <p><strong>Superseded.</strong> The 5 Aug version of this page described a two-table design
+    (<code>DispatchAutoConfig</code> + <code>DispatchAutoConfigPriority</code>) with <code>CompanyId</code>,
+    <code>ScopeTypeId</code>, <code>PriorityId</code>, <code>IsLocked</code>,
+    <code>AcceptRejectWindowSeconds</code> and <code>EtaRequestWindowSeconds</code>. That design no longer exists —
+    neither do the database screenshots that illustrated it, which have been removed rather than left to contradict
+    the schema above. Section&nbsp;4 records what went and why.</p>
   </div>
 </section>
 

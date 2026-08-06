@@ -51,7 +51,7 @@
   <p class="sub">Design and review documents for the FieldJetX auto-dispatch work.</p>
   <div class="meta">
     <span class="chip">Team <strong>Techjays</strong></span>
-    <span class="chip">Updated <strong>5 Aug 2026</strong></span>
+    <span class="chip">Updated <strong>6 Aug 2026</strong></span>
   </div>
 
   <h2>Design documents</h2>
@@ -59,14 +59,16 @@
   <a class="doc" href="dispatch-configuration.html">
     <div class="t">Dispatch Configuration — Schema &amp; API →</div>
     <div class="d">
-      The configuration screen for Use Case A: two new tables, two endpoints, and how they
-      drive the UI. Includes an ER diagram, a field-by-field reference for every column,
-      request/response examples, and screenshots of the live data.
+      The configuration screen for Use Case A: four new tables (two reference, two configuration),
+      two endpoints, and how they drive the UI. Includes an ER diagram, a field-by-field reference
+      for every column, the request/response contract, the LaunchDarkly gate — and why
+      <em>CompanyId</em>, <em>ScopeTypeId</em>, <em>PriorityId</em> and <em>IsLocked</em> were removed.
     </div>
     <div class="tags">
       <span class="tag">ER diagram</span>
       <span class="tag">Field reference</span>
       <span class="tag">API contract</span>
+      <span class="tag">Feature flag</span>
       <span class="tag ok">Built &amp; tested locally</span>
       <span class="tag pend">DDL pending DBA</span>
     </div>

@@ -9,7 +9,7 @@ Design and review documents for the FieldJetX auto-dispatch work (Techjays).
 | Page | Contents |
 |---|---|
 | [`index.html`](index.html) | Landing page — links to every document |
-| [`dispatch-configuration.html`](dispatch-configuration.html) | **Use Case A — Dispatch Configuration.** ER diagram, field-by-field schema for both new tables, API contract with request/response examples, and live-data screenshots |
+| [`dispatch-configuration.html`](dispatch-configuration.html) | **Use Case A — Dispatch Configuration.** ER diagram, field-by-field schema for all four tables (two reference, two config), the API contract with request/response examples, and the reasoning behind every column that was removed |
 | [`spec-review-stream1.html`](spec-review-stream1.html) | **Stream 1 Unified Architecture review (round 2).** 13 areas scored, 49 findings, overall 7.2/10 |
 
 > `spec-review-stream1.html` was previously served at the site root as `index.html`.
